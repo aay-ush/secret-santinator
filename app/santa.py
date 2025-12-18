@@ -11,9 +11,19 @@ def _is_admin() -> bool:
     admin_name = current_app.config.get("SANTA_ADMIN_NAME")
     return bool(admin_name) and current_user.is_authenticated and current_user.name == admin_name
 
+#@santa_bp.route("/")
+#def index():
+#    return redirect(url_for("santa.dashboard"))
+
 @santa_bp.route("/")
 def index():
-    return redirect(url_for("santa.dashboard"))
+    state = AssignmentState.get_singleton()
+    return render_template(
+        "landing.html",
+        registration_closed=state.is_locked,
+        assignment_run_at=state.run_at,
+    )
+
 
 @santa_bp.route("/dashboard")
 @login_required
