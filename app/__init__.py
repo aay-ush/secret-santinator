@@ -5,6 +5,7 @@ from flask import Flask
 
 from .extensions import db, login_manager, migrate, csrf
 from .models import AssignmentState
+from .policies import is_admin_user
 from .views.auth import auth_bp
 from .views.santa import santa_bp
 from .views.public import public_bp
