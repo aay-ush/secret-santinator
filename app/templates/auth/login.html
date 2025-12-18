@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Login</h1>
+
+<form id="login-form" method="post">
+  <label>Name: <input type="text" name="name" id="login-name" required></label><br>
+  <input type="hidden" name="client_hash" id="login-client-hash">
+  <button type="submit">Login using saved passphrase on this device</button>
+</form>
+
+<p id="login-status" style="margin-top:1em;"></p>
+
+<form id="reset-form" method="post" action="{{ url_for('auth.request_reset') }}" style="margin-top:1em;">
+  <input type="hidden" name="name" id="reset-name">
+  <button type="submit">I lost my passphrase – request admin reset</button>
+</form>
+
+<script>
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("login-name").value.trim();
+  if (!name) { alert("Name is required."); return; }
+
+  document.getElementById("reset-name").value = name;
+
+  const phrase = localStorage.getItem(keyForName(name));
+  if (!phrase) {
+    document.getElementById("login-status").textContent =
+      "No passphrase stored on this device for that name. Request a reset and contact the organizer in person.";
+    return;
+  }
+
+  document.getElementById("login-client-hash").value = await sha256Hex(phrase);
+  e.target.submit();
+});
+</script>
+{% endblock %}
+

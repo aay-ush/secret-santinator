@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Secret Santa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <nav>
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('santa.dashboard') }}">Dashboard</a> |
+      <a href="{{ url_for('santa.my_assignment') }}">My Assignment</a> |
+      <a href="{{ url_for('auth.logout') }}">Logout</a>
+    {% else %}
+      <a href="{{ url_for('auth.register') }}">Register</a> |
+      <a href="{{ url_for('auth.login') }}">Login</a>
+    {% endif %}
+  </nav>
+
+  <hr>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul>
+        {% for category, msg in messages %}
+          <li><strong>{{ category }}:</strong> {{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+
+  <script>
+  // --- Client-side crypto helpers (no server ever sees the passphrase) -----
+
+  async function sha256Hex(text) {
+    const normalized = text.trim().replace(/\s+/g, " ");
+    const encoder = new TextEncoder();
+    const data = encoder.encode(normalized);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  // A compact built-in wordlist. You can expand this later by loading a static JSON.
+  const WORDS = [
+    "apple","forest","river","galaxy","violet","tiger","mango","planet","coffee","guitar","lantern","silver",
+    "cactus","window","mountain","puzzle","storm","sunrise","compass","ocean","eclipse","bamboo","marble","orbit",
+    "candle","dragon","saffron","paper","whisper","thunder","ember","sugar","needle","velvet","mirror","sandal",
+    "meadow","rocket","crystal","bridge","comet","harbor","island","jungle","kettle","lilac","mosaic","nebula"
+  ];
+
+  function generatePassphrase(numWords = 6) {
+    const arr = new Uint32Array(numWords);
+    crypto.getRandomValues(arr);
+    const words = [];
+    for (let i = 0; i < numWords; i++) {
+      words.push(WORDS[arr[i] % WORDS.length]);
+    }
+    return words.join(" ");
+  }
+
+  const KEY_PREFIX = "ss_passphrase_";
+  function keyForName(name) {
+    return KEY_PREFIX + name.trim().toLowerCase();
+  }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Register</h1>
+
+<form id="register-form" method="post">
+  <label>Name: <input type="text" name="name" id="reg-name" required></label><br>
+  <label>Email (optional): <input type="email" name="email"></label><br><br>
+
+  <p><strong>Your passphrase (generated on this device):</strong></p>
+  <div id="reg-passphrase" style="font-weight:bold; font-size:1.1em;"></div>
+  <button type="button" id="reg-new">Give me another</button>
+
+  <input type="hidden" name="client_hash" id="reg-client-hash">
+
+  <p style="margin-top:1em;">
+    Your device will remember this passphrase. If you clear browser storage or use a new device,
+    you’ll need an admin-approved reset.
+  </p>
+
+  <button type="submit">Use this passphrase & Register</button>
+</form>
+
+<script>
+let currentPhrase = "";
+
+function refreshPhrase() {
+  currentPhrase = generatePassphrase(6);
+  document.getElementById("reg-passphrase").textContent = currentPhrase;
+}
+
+document.getElementById("reg-new").addEventListener("click", refreshPhrase);
+refreshPhrase();
+
+document.getElementById("register-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("reg-name").value.trim();
+  if (!name) { alert("Name is required."); return; }
+
+  // Store passphrase locally for this participant name
+  localStorage.setItem(keyForName(name), currentPhrase);
+
+  // Send only SHA-256(passphrase) to server
+  document.getElementById("reg-client-hash").value = await sha256Hex(currentPhrase);
+
+  e.target.submit();
+});
+</script>
+{% endblock %}
+
