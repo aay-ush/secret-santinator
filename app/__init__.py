@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from flask import Flask
 
-from .extensions import db, login_manager, migrate
+from .extensions import db, login_manager, migrate, csrf
 from .models import AssignmentState
 from .views.auth import auth_bp
 from .views.santa import santa_bp
@@ -23,6 +23,7 @@ def create_app() -> Flask:
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
     login_manager.login_view = "auth.login"
 
     # Blueprints
@@ -37,6 +38,7 @@ def create_app() -> Flask:
         return {
             "registration_closed": state.is_locked,
             "assignment_run_at": state.run_at,
+            "is_admin": is_admin_user(),
         }
 
     return app

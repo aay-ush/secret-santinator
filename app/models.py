@@ -15,7 +15,7 @@ class Participant(UserMixin, db.Model):
     registered_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # Self-referential assignment
-    assigned_to_id = db.Column(db.Integer, db.ForeignKey("participants.id"), nullable=True)
+    assigned_to_id = db.Column(db.Integer, db.ForeignKey("participants.id", ondelete="SET NULL"), nullable=True)
     assigned_to = db.relationship(
         "Participant",
         remote_side=[id],
@@ -34,8 +34,8 @@ class Exclusion(db.Model):
     __tablename__ = "exclusions"
     id = db.Column(db.Integer, primary_key=True)
 
-    giver_id = db.Column(db.Integer, db.ForeignKey("participants.id"), nullable=False)
-    receiver_id = db.Column(db.Integer, db.ForeignKey("participants.id"), nullable=False)
+    giver_id = db.Column(db.Integer, db.ForeignKey("participants.id", ondelete="CASCADE"), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey("participants.id", ondelete="CASCADE"), nullable=False)
 
     giver = db.relationship("Participant", foreign_keys=[giver_id])
     receiver = db.relationship("Participant", foreign_keys=[receiver_id])

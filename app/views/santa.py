@@ -4,8 +4,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import current_user
 
 from ..extensions import db
-from ..models import Participant, AssignmentState
-from ..policies import LoginRequiredMixin, AdminRequiredMixin, ViewOnlyWhenLockedMixin, is_admin_user
+from ..models import Participant, AssignmentState, Exclusion
+from ..policies import LoginRequiredMixin, AdminRequiredMixin, ViewOnlyWhenLockedMixin, is_admin_user, assignments_locked
 from ..services.assignments import run_and_lock_assignments, unset_and_unlock_assignments, AssignmentError
 from ..services.preferences import get_user_preferences, set_user_preferences
 from ..models import Exclusion
@@ -120,6 +120,46 @@ class AdminResetPasskeyView(AdminRequiredMixin):
         flash(f"Reset complete for {p.name}.", "success")
         return redirect(url_for("santa.admin_resets"))
 
+class AdminDeleteParticipantView(AdminRequiredMixin):
+    def post(self, participant_id: int):
+        # ✅ Auto-unlock if locked
+        if AssignmentState.get_singleton().is_locked:
+            unset_and_unlock_assignments()
+            flash("Assignments were locked — they have been unset & unlocked due to participant deletion.", "info")
+
+        p = Participant.query.get_or_404(participant_id)
+
+        # Prevent deleting the admin account via UI (recommended)
+        if is_admin_user() and p.id == current_user.id:
+            flash("You cannot delete the admin account while logged in as it.", "error")
+            return redirect(url_for("santa.admin_participants"))
+
+        # Clean up directed exclusions involving this user
+        Exclusion.query.filter(
+            (Exclusion.giver_id == p.id) | (Exclusion.receiver_id == p.id)
+        ).delete(synchronize_session=False)
+
+        # Clear any assignments pointing to this person (defensive)
+        Participant.query.filter_by(assigned_to_id=p.id).update(
+            {"assigned_to_id": None}, synchronize_session=False
+        )
+
+        db.session.delete(p)
+        db.session.commit()
+
+        flash(f"Deleted participant: {p.name}", "success")
+        return redirect(url_for("santa.admin_participants"))
+
+class AdminParticipantsView(AdminRequiredMixin):
+    def get(self):
+        state = AssignmentState.get_singleton()
+        participants = Participant.query.order_by(Participant.name.asc()).all()
+        return render_template(
+            "santa/admin_participants.html",
+            participants=participants,
+            locked=state.is_locked,
+        )
+
 
 # Register routes
 santa_bp.add_url_rule("/dashboard", view_func=DashboardView.as_view("dashboard"))
@@ -131,4 +171,11 @@ santa_bp.add_url_rule("/admin/unset-assignments", view_func=AdminUnsetAssignment
 
 santa_bp.add_url_rule("/admin/resets", view_func=AdminResetsView.as_view("admin_resets"))
 santa_bp.add_url_rule("/admin/reset-passkey/<int:participant_id>", view_func=AdminResetPasskeyView.as_view("admin_reset_passkey"), methods=["GET", "POST"])
+
+santa_bp.add_url_rule("/admin/participants", view_func=AdminParticipantsView.as_view("admin_participants"))
+santa_bp.add_url_rule(
+    "/admin/participants/<int:participant_id>/delete",
+    view_func=AdminDeleteParticipantView.as_view("admin_delete_participant"),
+    methods=["POST"],
+)
 

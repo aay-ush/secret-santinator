@@ -1,8 +1,8 @@
 """initial
 
-Revision ID: 84eed829911f
+Revision ID: cbb4d6b911d3
 Revises: 
-Create Date: 2025-12-18 03:23:18.467372
+Create Date: 2025-12-18 04:10:04.762126
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '84eed829911f'
+revision = 'cbb4d6b911d3'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,7 +22,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('run_at', sa.DateTime(), nullable=True),
     sa.Column('is_locked', sa.Boolean(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_assignment_state'))
     )
     op.create_table('participants',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -32,18 +32,18 @@ def upgrade():
     sa.Column('registered_at', sa.DateTime(), nullable=False),
     sa.Column('assigned_to_id', sa.Integer(), nullable=True),
     sa.Column('reset_requested', sa.Boolean(), nullable=False),
-    sa.ForeignKeyConstraint(['assigned_to_id'], ['participants.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email'),
-    sa.UniqueConstraint('name')
+    sa.ForeignKeyConstraint(['assigned_to_id'], ['participants.id'], name=op.f('fk_participants_assigned_to_id_participants'), ondelete='SET NULL'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_participants')),
+    sa.UniqueConstraint('email', name=op.f('uq_participants_email')),
+    sa.UniqueConstraint('name', name=op.f('uq_participants_name'))
     )
     op.create_table('exclusions',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('giver_id', sa.Integer(), nullable=False),
     sa.Column('receiver_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['giver_id'], ['participants.id'], ),
-    sa.ForeignKeyConstraint(['receiver_id'], ['participants.id'], ),
-    sa.PrimaryKeyConstraint('id'),
+    sa.ForeignKeyConstraint(['giver_id'], ['participants.id'], name=op.f('fk_exclusions_giver_id_participants'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['receiver_id'], ['participants.id'], name=op.f('fk_exclusions_receiver_id_participants'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_exclusions')),
     sa.UniqueConstraint('giver_id', 'receiver_id', name='uq_exclusion_giver_receiver')
     )
     # ### end Alembic commands ###

@@ -10,9 +10,33 @@
     {% if current_user.is_authenticated %}
       <a href="{{ url_for('santa.dashboard') }}">Dashboard</a> |
       <a href="{{ url_for('santa.my_assignment') }}">My Assignment</a> |
+      <a href="{{ url_for('santa.preferences') }}">Preferences</a> |
+
+      {% if is_admin %}
+        <strong>Admin:</strong>
+        <a href="{{ url_for('santa.admin_participants') }}">Participants</a> |
+        <a href="{{ url_for('santa.admin_run_assignments') }}"
+           onclick="return confirm('Run & lock assignments now?');">Run</a> |
+
+        <form method="post"
+              action="{{ url_for('santa.admin_unset_assignments') }}"
+              onsubmit="return confirm('Unset & unlock assignments?');"
+              style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"
+                  style="padding:0; border:none; background:none; color:blue; text-decoration:underline; cursor:pointer;">
+            Unset
+          </button>
+        </form>
+        |
+        <a href="{{ url_for('santa.admin_resets') }}">Resets</a> |
+      {% endif %}
+
       <a href="{{ url_for('auth.logout') }}">Logout</a>
     {% else %}
-      <a href="{{ url_for('auth.register') }}">Register</a> |
+      {% if not registration_closed %}
+        <a href="{{ url_for('auth.register') }}">Register</a> |
+      {% endif %}
       <a href="{{ url_for('auth.login') }}">Login</a>
     {% endif %}
   </nav>
