@@ -1,49 +1,92 @@
 {% extends "base.html" %}
+
 {% block content %}
 <h1>Register</h1>
 
 <form id="register-form" method="post">
-  <label>Name: <input type="text" name="name" id="reg-name" required></label><br>
-  <label>Email (optional): <input type="email" name="email"></label><br><br>
+  <label>
+    Name:
+    <input type="text" name="name" required>
+  </label>
+  <br><br>
 
-  <p><strong>Your passphrase (generated on this device):</strong></p>
-  <div id="reg-passphrase" style="font-weight:bold; font-size:1.1em;"></div>
-  <button type="button" id="reg-new">Give me another</button>
+  <label>
+    Email (optional):
+    <input type="email" name="email">
+  </label>
+  <br><br>
 
-  <input type="hidden" name="client_hash" id="reg-client-hash">
+  <p><strong>Your generated passphrase:</strong></p>
 
-  <p style="margin-top:1em;">
-    Your device will remember this passphrase. If you clear browser storage or use a new device,
-    you’ll need an admin-approved reset.
-  </p>
+  <!-- Visible passphrase -->
+  <div
+    id="reg-passphrase"
+    style="
+      font-weight: bold;
+      font-size: 1.2em;
+      padding: 8px;
+      background: #f4f4f4;
+      display: inline-block;
+      margin-bottom: 8px;
+    ">
+  </div>
+  <br>
 
-  <button type="submit">Use this passphrase & Register</button>
+  <button type="button" id="btn-new-passphrase">
+    Give me another
+  </button>
+
+  <input type="hidden" name="client_hash">
+
+  <br><br>
+
+  <button type="submit">
+    Use this passphrase & Register
+  </button>
 </form>
 
+<p style="margin-top:1em;">
+  ⚠️ This passphrase is stored only on this device.
+  If you clear browser storage or switch devices, you will need an admin reset.
+</p>
+
 <script>
-let currentPhrase = "";
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("register-form");
+  const phraseBox = document.getElementById("reg-passphrase");
+  const regenBtn = document.getElementById("btn-new-passphrase");
 
-function refreshPhrase() {
-  currentPhrase = generatePassphrase(6);
-  document.getElementById("reg-passphrase").textContent = currentPhrase;
-}
+  let currentPhrase = "";
 
-document.getElementById("reg-new").addEventListener("click", refreshPhrase);
-refreshPhrase();
+  function refreshPhrase() {
+    currentPhrase = generatePassphrase(6);
+    phraseBox.textContent = currentPhrase;
+  }
 
-document.getElementById("register-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
+  // Show phrase immediately
+  refreshPhrase();
 
-  const name = document.getElementById("reg-name").value.trim();
-  if (!name) { alert("Name is required."); return; }
+  regenBtn.addEventListener("click", refreshPhrase);
 
-  // Store passphrase locally for this participant name
-  localStorage.setItem(keyForName(name), currentPhrase);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  // Send only SHA-256(passphrase) to server
-  document.getElementById("reg-client-hash").value = await sha256Hex(currentPhrase);
+    // ✅ Robust: read by name attribute from THIS form
+    const name = (form.elements["name"]?.value || "").trim();
 
-  e.target.submit();
+    if (!name) {
+      alert("Name is required.");
+      return;
+    }
+
+    // Store passphrase locally (client remembers)
+    localStorage.setItem(keyForName(name), currentPhrase);
+
+    // Send only SHA-256(passphrase) to server
+    form.elements["client_hash"].value = await sha256Hex(currentPhrase);
+
+    form.submit();
+  });
 });
 </script>
 {% endblock %}

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Dashboard</h1>
+<p><a href="{{ url_for('santa.preferences') }}">Set gift preferences</a></p>
 <p>Hello, <strong>{{ current_user.name }}</strong></p>
 <p>Participants registered: {{ num_participants }}</p>
 
@@ -12,10 +13,16 @@
 {% endif %}
 
 {% if is_admin %}
-  <hr>
-  <h2>Admin</h2>
   <p><a href="{{ url_for('santa.admin_run_assignments') }}">Run & lock assignments</a></p>
+
+  <form method="post" action="{{ url_for('santa.admin_unset_assignments') }}"
+        onsubmit="return confirm('Unset all assignments and unlock?');">
+    <button type="submit">Unset & unlock assignments</button>
+  </form>
+
   <p><a href="{{ url_for('santa.admin_resets') }}">Reset requests ({{ reset_count }})</a></p>
 {% endif %}
+
+
 {% endblock %}
 

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Gift Preferences</h1>
+<p>Set who you <strong>don’t want to gift to</strong> and who you <strong>don’t want to receive from</strong>.</p>
+<p>These are used when the organizer runs assignments. Once assignments are locked, preferences can’t change.</p>
+
+<form method="post">
+  <h2>🚫 I don’t want to gift to</h2>
+  <p><small>Select zero or more.</small></p>
+  <div style="display:flex; flex-wrap:wrap; gap:12px;">
+    {% for p in candidates %}
+      <label style="min-width:200px;">
+        <input type="checkbox" name="dont_gift_to" value="{{ p.id }}"
+          {% if p.id in outgoing %}checked{% endif %}>
+        {{ p.name }}
+      </label>
+    {% endfor %}
+  </div>
+
+  <hr style="margin: 16px 0;">
+
+  <h2>🚫 I don’t want to receive from</h2>
+  <p><small>Select zero or more.</small></p>
+  <div style="display:flex; flex-wrap:wrap; gap:12px;">
+    {% for p in candidates %}
+      <label style="min-width:200px;">
+        <input type="checkbox" name="dont_receive_from" value="{{ p.id }}"
+          {% if p.id in incoming %}checked{% endif %}>
+        {{ p.name }}
+      </label>
+    {% endfor %}
+  </div>
+
+  <br><br>
+  <button type="submit">Save Preferences</button>
+  <a href="{{ url_for('santa.dashboard') }}" style="margin-left:12px;">Back</a>
+</form>
+{% endblock %}
+

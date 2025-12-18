@@ -14,10 +14,35 @@ class Participant(UserMixin, db.Model):
 
     registered_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+    # Self-referential assignment
     assigned_to_id = db.Column(db.Integer, db.ForeignKey("participants.id"), nullable=True)
-    assigned_to = db.relationship("Participant", remote_side=[id], uselist=False)
+    assigned_to = db.relationship(
+        "Participant",
+        remote_side=[id],
+        foreign_keys=[assigned_to_id],
+        uselist=False,
+        post_update=True,
+    )
 
     reset_requested = db.Column(db.Boolean, default=False, nullable=False)
+
+
+class Exclusion(db.Model):
+    """
+    Directed constraint: giver_id cannot gift to receiver_id.
+    """
+    __tablename__ = "exclusions"
+    id = db.Column(db.Integer, primary_key=True)
+
+    giver_id = db.Column(db.Integer, db.ForeignKey("participants.id"), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey("participants.id"), nullable=False)
+
+    giver = db.relationship("Participant", foreign_keys=[giver_id])
+    receiver = db.relationship("Participant", foreign_keys=[receiver_id])
+
+    __table_args__ = (
+        db.UniqueConstraint("giver_id", "receiver_id", name="uq_exclusion_giver_receiver"),
+    )
 
 
 class AssignmentState(db.Model):

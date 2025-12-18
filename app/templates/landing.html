@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>🎄 Secret Santa</h1>
+
+{% if registration_closed %}
+  <h2>✅ Registration Closed</h2>
+  <p>
+    Assignments have been generated and locked{% if assignment_run_at %} (run at {{ assignment_run_at }}){% endif %}.
+  </p>
+
+  <h3>How to see your assignment</h3>
+  <ol>
+    <li>On this same device/browser where you registered, click <strong>Login</strong>.</li>
+    <li>Enter your <strong>name</strong>.</li>
+    <li>This device will use the saved passphrase to log you in automatically.</li>
+    <li>Then click <strong>My Assignment</strong> to see who you got 🎁</li>
+  </ol>
+
+  <p>
+    <a href="{{ url_for('auth.login') }}">🔐 Login to see my assignment</a>
+  </p>
+
+  <h3>If you switched devices or lost the passphrase</h3>
+  <ol>
+    <li>Go to the <strong>Login</strong> page.</li>
+    <li>Enter your name.</li>
+    <li>If your device doesn’t have the passphrase saved, click <strong>Request admin reset</strong>.</li>
+    <li>Contact the organizer in person for approval.</li>
+  </ol>
+
+{% else %}
+  <h2>📝 Registration Open</h2>
+  <p>
+    Registering is quick: your device will generate a secure passphrase and store it locally.
+    The server never stores your passphrase—only a salted hash.
+  </p>
+
+  <h3>Register (first time)</h3>
+  <ol>
+    <li>Click <strong>Register</strong>.</li>
+    <li>Enter your <strong>name</strong> (must be unique).</li>
+    <li>Your device will show a generated passphrase — keep it safe.</li>
+    <li>Click <strong>Use this passphrase & Register</strong>.</li>
+  </ol>
+
+  <p>
+    <a href="{{ url_for('auth.register') }}">🆕 Register now</a>
+    &nbsp; | &nbsp;
+    <a href="{{ url_for('auth.login') }}">🔐 Login</a>
+  </p>
+
+  <h3>Important notes</h3>
+  <ul>
+    <li><strong>Use the same browser/device</strong> later to log in automatically.</li>
+    <li>If you clear browser storage or switch devices, you’ll need an <strong>admin-approved reset</strong>.</li>
+    <li>Once the organizer locks assignments, <strong>registration closes</strong>.</li>
+  </ul>
+{% endif %}
+
+<hr>
+<p style="font-size: 0.95em;">
+  Organizer tip: log in as the admin user and click <strong>Run & lock assignments</strong> when everyone has registered.
+</p>
+{% endblock %}
+
