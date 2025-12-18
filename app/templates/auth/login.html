@@ -1,43 +1,41 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card">
-  <h1>Login</h1>
+<h1>Login</h1>
 
-  <form method="post" id="loginForm">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<form id="login-form" method="post">
+  <label>Name: <input type="text" name="name" id="login-name" required></label><br>
+  <input type="hidden" name="client_hash" id="login-client-hash">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit">Login using saved passphrase on this device</button>
+</form>
 
-    <label>Name</label>
-    <input class="input" id="name" name="name" required>
+<p id="login-status" style="margin-top:1em;"></p>
 
-    <input type="hidden" name="client_hash" id="client_hash">
-
-    <button class="btn btn-primary" type="submit">Login</button>
-  </form>
-
-  <hr>
-
-  <form method="post" action="{{ url_for('auth.request_reset') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-    <label>Forgot passphrase?</label>
-    <input class="input" name="name" placeholder="Your name" required>
-
-    <button class="btn">Request reset</button>
-  </form>
-</div>
+<form id="reset-form" method="post" action="{{ url_for('auth.request_reset') }}" style="margin-top:1em;">
+  <input type="hidden" name="name" id="reset-name">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit">I lost my passphrase – request admin reset</button>
+</form>
 
 <script>
-document.getElementById("loginForm").onsubmit = async (e) => {
+document.getElementById("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const name = document.getElementById("name").value.trim();
-  const pass = localStorage.getItem(keyForName(name));
-  if (!pass) {
-    alert("No saved passphrase on this device.");
+
+  const name = document.getElementById("login-name").value.trim();
+  if (!name) { alert("Name is required."); return; }
+
+  document.getElementById("reset-name").value = name;
+
+  const phrase = localStorage.getItem(keyForName(name));
+  if (!phrase) {
+    document.getElementById("login-status").textContent =
+      "No passphrase stored on this device for that name. Request a reset and contact the organizer in person.";
     return;
   }
-  document.getElementById("client_hash").value = await sha256Hex(pass);
+
+  document.getElementById("login-client-hash").value = await sha256Hex(phrase);
   e.target.submit();
-};
+});
 </script>
 {% endblock %}
 

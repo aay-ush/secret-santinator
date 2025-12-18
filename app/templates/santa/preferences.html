@@ -1,86 +1,39 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="grid">
-  <div class="col-8">
-    <div class="card">
-      <h1>⚙️ Preferences</h1>
-      <p>
-        Choose who you don’t want to gift to and/or don’t want to receive from.
-        {% if assignment_locked %}
-          <span class="pill">Assignments locked</span>
-        {% else %}
-          <span class="pill">Assignments unlocked</span>
-        {% endif %}
-      </p>
+<h1>Gift Preferences</h1>
+<p>Set who you <strong>don’t want to gift to</strong> and who you <strong>don’t want to receive from</strong>.</p>
+<p>These are used when the organizer runs assignments. Once assignments are locked, preferences can’t change.</p>
 
-      <form method="post" action="{{ url_for('santa.preferences') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-        <div class="grid" style="margin-top:12px;">
-          <div class="col-6">
-            <div class="card" style="box-shadow:none;">
-              <h2>🚫 I don’t want to gift to</h2>
-              <p class="muted">These people won’t be assigned as your recipient.</p>
-
-              <div class="form-row">
-                {% for p in participants %}
-                  {% if p.id != me.id %}
-                    <label style="display:flex; gap:10px; align-items:center;">
-                      <input type="checkbox"
-                             name="no_gift_to"
-                             value="{{ p.id }}"
-                             {% if p.id in no_gift_to_ids %}checked{% endif %}>
-                      <span>{{ p.name }}</span>
-                    </label>
-                  {% endif %}
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-
-          <div class="col-6">
-            <div class="card" style="box-shadow:none;">
-              <h2>🚫 I don’t want to receive from</h2>
-              <p class="muted">These people won’t be allowed to gift to you.</p>
-
-              <div class="form-row">
-                {% for p in participants %}
-                  {% if p.id != me.id %}
-                    <label style="display:flex; gap:10px; align-items:center;">
-                      <input type="checkbox"
-                             name="no_receive_from"
-                             value="{{ p.id }}"
-                             {% if p.id in no_receive_from_ids %}checked{% endif %}>
-                      <span>{{ p.name }}</span>
-                    </label>
-                  {% endif %}
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn btn-primary" type="submit">Save preferences</button>
-          <a class="btn" href="{{ url_for('santa.dashboard') }}">Back</a>
-        </div>
-      </form>
-
-      <div class="flash info" style="margin-top:14px;">
-        You can still <strong>view</strong> preferences after assignments are locked.
-        If you want changes after locking, ask the organizer to unset & unlock assignments.
-      </div>
-    </div>
+<form method="post">
+  <h2>🚫 I don’t want to gift to</h2>
+  <p><small>Select zero or more.</small></p>
+  <div style="display:flex; flex-wrap:wrap; gap:12px;">
+    {% for p in candidates %}
+      <label style="min-width:200px;">
+        <input type="checkbox" name="dont_gift_to" value="{{ p.id }}"
+          {% if p.id in outgoing %}checked{% endif %}>
+        {{ p.name }}
+      </label>
+    {% endfor %}
   </div>
 
-  <div class="col-4">
-    <div class="card">
-      <h2>Notes</h2>
-      <p>• Preferences affect assignment generation.</p>
-      <p>• Your saved choices remain visible even after locking.</p>
-      <p>• If you see “CSRF token missing”, refresh and try again.</p>
-    </div>
+  <hr style="margin: 16px 0;">
+
+  <h2>🚫 I don’t want to receive from</h2>
+  <p><small>Select zero or more.</small></p>
+  <div style="display:flex; flex-wrap:wrap; gap:12px;">
+    {% for p in candidates %}
+      <label style="min-width:200px;">
+        <input type="checkbox" name="dont_receive_from" value="{{ p.id }}"
+          {% if p.id in incoming %}checked{% endif %}>
+        {{ p.name }}
+      </label>
+    {% endfor %}
   </div>
-</div>
+
+  <br><br>
+  <button type="submit">Save Preferences</button>
+  <a href="{{ url_for('santa.dashboard') }}" style="margin-left:12px;">Back</a>
+</form>
 {% endblock %}
 

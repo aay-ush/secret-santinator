@@ -1,16 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card">
-  <h1>Dashboard</h1>
+<h1>Dashboard</h1>
 
-  {% if is_admin %}
-    <form method="post"
-          action="{{ url_for('santa.admin_unset_assignments') }}"
-          onsubmit="return confirm('Unset & unlock assignments?');">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button class="btn">Unset assignments</button>
-    </form>
-  {% endif %}
-</div>
+{% if assignment_locked %}
+  <p>
+    ✅ <strong>Assignments are locked</strong>
+    {% if assignment_run_at %}(run at {{ assignment_run_at }}){% endif %}
+  </p>
+{% else %}
+  <p>
+    🟡 <strong>Assignments are not locked</strong>
+  </p>
+{% endif %}
+
+<p><strong>Total participants:</strong> {{ num_participants }}</p>
+
+<hr>
+
+<p>
+  <a href="{{ url_for('santa.my_assignment') }}">🎁 My Assignment</a>
+  &nbsp; | &nbsp;
+  <a href="{{ url_for('santa.preferences') }}">⚙️ My Preferences</a>
+</p>
+
+{% if is_admin %}
+  <hr>
+  <h2>Admin</h2>
+
+  <p>
+    <a href="{{ url_for('santa.admin_participants') }}">👥 Manage participants</a>
+  </p>
+
+  <p>
+    <a href="{{ url_for('santa.admin_run_assignments') }}">✅ Run & lock assignments</a>
+  </p>
+
+  <form method="post"
+        action="{{ url_for('santa.admin_unset_assignments') }}"
+        onsubmit="return confirm('Unset all assignments and unlock? Users can update preferences and you will need to re-run assignments.');">
+    <button type="submit">🧹 Unset & unlock assignments</button>
+  </form>
+
+  <p style="margin-top:12px;">
+    <a href="{{ url_for('santa.admin_run_assignments') }}"
+       onclick="return confirm('Re-run and lock assignments now? Make sure participants and preferences are correct.');">
+      🔁 Re-run assignments now
+    </a>
+  </p>
+
+  <p style="margin-top:12px;">
+    <a href="{{ url_for('santa.admin_resets') }}">🔑 Reset requests ({{ reset_count }})</a>
+  </p>
+{% endif %}
+
 {% endblock %}
 
