@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
 from flask_login import login_required, current_user
 from .models import Participant, AssignmentState
-from .assignment_service import run_assignments
+from .assignments_service import run_assignments
 from .security import hash_client_key
 from .extensions import db
 
