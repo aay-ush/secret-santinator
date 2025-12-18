@@ -7,6 +7,7 @@
 </p>
 
 <form id="reset-form" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <p><strong>New passphrase (generated on this device):</strong></p>
   <div id="reset-passphrase" style="font-weight:bold; font-size:1.1em;"></div>
   <button type="button" id="reset-new">Give me another</button>

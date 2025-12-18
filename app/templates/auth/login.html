@@ -3,17 +3,17 @@
 <h1>Login</h1>
 
 <form id="login-form" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label>Name: <input type="text" name="name" id="login-name" required></label><br>
   <input type="hidden" name="client_hash" id="login-client-hash">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <button type="submit">Login using saved passphrase on this device</button>
 </form>
 
 <p id="login-status" style="margin-top:1em;"></p>
 
 <form id="reset-form" method="post" action="{{ url_for('auth.request_reset') }}" style="margin-top:1em;">
-  <input type="hidden" name="name" id="reset-name">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="name" id="reset-name">
   <button type="submit">I lost my passphrase – request admin reset</button>
 </form>
 

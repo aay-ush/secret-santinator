@@ -5,6 +5,7 @@
 <p>These are used when the organizer runs assignments. Once assignments are locked, preferences can’t change.</p>
 
 <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <h2>🚫 I don’t want to gift to</h2>
   <p><small>Select zero or more.</small></p>
   <div style="display:flex; flex-wrap:wrap; gap:12px;">

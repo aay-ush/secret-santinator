@@ -38,6 +38,7 @@
   <form method="post"
         action="{{ url_for('santa.admin_unset_assignments') }}"
         onsubmit="return confirm('Unset all assignments and unlock? Users can update preferences and you will need to re-run assignments.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit">🧹 Unset & unlock assignments</button>
   </form>
 
