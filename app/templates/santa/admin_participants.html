@@ -1,47 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Participants</h1>
+<div class="card">
+  <h1>Participants</h1>
 
-{% if locked %}
-  <p>
-    <strong>Assignments are currently locked.</strong>
-    Deleting a participant will automatically <strong>unset & unlock</strong> assignments.
-    You can re-run assignments after the deletion.
-  </p>
-{% else %}
-  <p>
-    Assignments are unlocked. You can safely delete participants, then re-run assignments when ready.
-  </p>
-{% endif %}
-
-<table border="1" cellpadding="8" cellspacing="0">
-  <tr>
-    <th>Name</th>
-    <th>Registered</th>
-    <th>Reset Requested</th>
-    <th>Actions</th>
-  </tr>
-
-  {% for p in participants %}
-  <tr>
-    <td>{{ p.name }}</td>
-    <td>{{ p.registered_at }}</td>
-    <td>{{ "Yes" if p.reset_requested else "No" }}</td>
-    <td>
-      <form method="post"
-            action="{{ url_for('santa.admin_delete_participant', participant_id=p.id) }}"
-            onsubmit="return confirm('Delete {{ p.name }}? If assignments are locked, this will unset & unlock them. This cannot be undone.');"
-            style="display:inline;">
-		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit">Delete</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-
-<p style="margin-top:12px;">
-  <a href="{{ url_for('santa.dashboard') }}">Back to dashboard</a>
-</p>
+  <table class="table">
+    <tr>
+      <th>Name</th>
+      <th>Reset?</th>
+      <th>Action</th>
+    </tr>
+    {% for p in participants %}
+    <tr>
+      <td>{{ p.name }}</td>
+      <td>{{ "Yes" if p.reset_requested else "No" }}</td>
+      <td>
+        <form method="post"
+              action="{{ url_for('santa.admin_delete_participant', participant_id=p.id) }}"
+              onsubmit="return confirm('Delete {{ p.name }}?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
 {% endblock %}
 

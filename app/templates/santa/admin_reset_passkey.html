@@ -1,47 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Reset passphrase for {{ participant.name }}</h1>
+<div class="card">
+  <h1>🔑 Reset passphrase</h1>
 
-<p>
-  Use this only after personal confirmation. The participant should be present and should keep the new passphrase safe.
-</p>
-
-<form id="reset-form" method="post">
-  <p><strong>New passphrase (generated on this device):</strong></p>
-  <div id="reset-passphrase" style="font-weight:bold; font-size:1.1em;"></div>
-  <button type="button" id="reset-new">Give me another</button>
-
-  <input type="hidden" name="client_hash" id="reset-client-hash">
-
-  <p style="margin-top:1em;">
-    This device will remember it under the participant’s name.
+  <p>
+    You are resetting the passphrase for
+    <strong>{{ participant.name }}</strong>.
   </p>
 
-  <button type="submit">Use this passphrase</button>
-</form>
+  <div class="flash warning">
+    This action will invalidate the participant’s existing passphrase.
+    They will need to log in again from their device.
+  </div>
 
-<script>
-let currentPhrase = "";
+  <form method="post"
+        action="{{ url_for('santa.admin_reset_passkey', participant_id=participant.id) }}"
+        onsubmit="return confirm('Confirm reset passphrase for {{ participant.name }}?');">
 
-function refreshPhrase() {
-  currentPhrase = generatePassphrase(6);
-  document.getElementById("reset-passphrase").textContent = currentPhrase;
-}
+    <!-- ✅ REQUIRED CSRF TOKEN -->
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-document.getElementById("reset-new").addEventListener("click", refreshPhrase);
-refreshPhrase();
+    <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn btn-primary" type="submit">
+        Reset passphrase
+      </button>
 
-document.getElementById("reset-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  // Save locally on this device
-  localStorage.setItem(keyForName("{{ participant.name }}"), currentPhrase);
-
-  // Send only SHA-256(passphrase)
-  document.getElementById("reset-client-hash").value = await sha256Hex(currentPhrase);
-
-  e.target.submit();
-});
-</script>
+      <a class="btn"
+         href="{{ url_for('santa.admin_resets') }}">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
 {% endblock %}
 

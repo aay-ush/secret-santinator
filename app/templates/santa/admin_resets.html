@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Pending Reset Requests</h1>
+<div class="card">
+  <h1>Reset Requests</h1>
 
-{% if not pending %}
-  <p>No pending reset requests.</p>
-{% else %}
-  <ul>
-    {% for p in pending %}
-      <li>
-        <strong>{{ p.name }}</strong> (id: {{ p.id }})
-        — <a href="{{ url_for('santa.admin_reset_passkey', participant_id=p.id) }}">Reset now (with participant present)</a>
-      </li>
-    {% endfor %}
-  </ul>
-{% endif %}
+  {% for p in participants %}
+    <div style="margin-bottom:10px;">
+      <strong>{{ p.name }}</strong>
 
-<p><a href="{{ url_for('santa.dashboard') }}">Back to dashboard</a></p>
+      <form method="post"
+            action="{{ url_for('santa.admin_approve_reset', participant_id=p.id) }}"
+            style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-primary">Approve reset</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
 {% endblock %}
 
