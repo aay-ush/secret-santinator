@@ -8,8 +8,7 @@ from ..models import Participant, AssignmentState, Exclusion
 from ..policies import LoginRequiredMixin, AdminRequiredMixin, ViewOnlyWhenLockedMixin, is_admin_user, assignments_locked
 from ..services.assignments import run_and_lock_assignments, unset_and_unlock_assignments, AssignmentError
 from ..services.preferences import get_user_preferences, set_user_preferences
-from ..models import Exclusion
-from ..security import hash_client_key
+from ..security import decrypt_assignment_recipient
 
 santa_bp = Blueprint("santa", __name__)
 
@@ -31,10 +30,23 @@ class DashboardView(LoginRequiredMixin):
 
 class MyAssignmentView(LoginRequiredMixin):
     def get(self):
-        if not current_user.assigned_to_id:
+        token = getattr(current_user, "assigned_to_ciphertext", None)
+        if not token:
             flash("Assignments have not been run yet (or you are excluded).", "info")
             return redirect(url_for("santa.dashboard"))
-        return render_template("santa/assignment.html", assigned_to=current_user.assigned_to)
+
+        try:
+            receiver_id = decrypt_assignment_recipient(token)
+        except ValueError:
+            flash("Could not decrypt your assignment. Please ask the organizer to unset and rerun assignments.", "error")
+            return redirect(url_for("santa.dashboard"))
+
+        assigned_to = Participant.query.get(receiver_id)
+        if not assigned_to:
+            flash("Your assigned recipient no longer exists. Please ask the organizer to rerun assignments.", "error")
+            return redirect(url_for("santa.dashboard"))
+
+        return render_template("santa/assignment.html", assigned_to=assigned_to)
 
 
 class PreferencesView(ViewOnlyWhenLockedMixin):
@@ -114,6 +126,7 @@ class AdminResetPasskeyView(AdminRequiredMixin):
             flash("Missing client hash.", "error")
             return redirect(url_for("santa.admin_reset_passkey", participant_id=participant_id))
 
+        from ..security import hash_client_key  # local import to avoid circulars
         p.passkey_hash = hash_client_key(client_hash)
         p.must_change_passphrase = True
         p.reset_requested = False

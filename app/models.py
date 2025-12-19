@@ -14,7 +14,9 @@ class Participant(UserMixin, db.Model):
 
     registered_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    # Self-referential assignment
+    # --- Assignments ---
+    # Legacy plaintext assignment (kept for backward compatibility with existing DBs).
+    # We no longer write to this column; it is cleared whenever assignments are run/unset.
     assigned_to_id = db.Column(db.Integer, db.ForeignKey("participants.id", ondelete="SET NULL"), nullable=True)
     assigned_to = db.relationship(
         "Participant",
@@ -23,6 +25,9 @@ class Participant(UserMixin, db.Model):
         uselist=False,
         post_update=True,
     )
+
+    # Encrypted receiver_id (Fernet token string). This is what we now persist.
+    assigned_to_ciphertext = db.Column(db.Text, nullable=True)
 
     reset_requested = db.Column(db.Boolean, default=False, nullable=False)
     # Organizer-issued temporary passphrase is active; force change on first login.

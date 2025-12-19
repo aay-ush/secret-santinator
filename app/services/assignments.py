@@ -6,6 +6,7 @@ from flask import current_app
 
 from ..extensions import db
 from ..models import Participant, AssignmentState, Exclusion
+from ..security import encrypt_assignment_recipient
 
 
 class AssignmentError(RuntimeError):
@@ -83,7 +84,11 @@ def run_and_lock_assignments() -> None:
 
     id_map = {p.id: p for p in people}
     for giver_id, receiver_id in assignment.items():
-        id_map[giver_id].assigned_to_id = receiver_id
+        giver = id_map[giver_id]
+        # Store ONLY the encrypted receiver id.
+        giver.assigned_to_ciphertext = encrypt_assignment_recipient(receiver_id)
+        # Defense-in-depth: ensure we never leave plaintext assignment behind.
+        giver.assigned_to_id = None
 
     state.is_locked = True
     state.run_at = datetime.utcnow()
@@ -97,6 +102,7 @@ def unset_and_unlock_assignments() -> None:
     people = _pool_participants_excluding_admin()
     for p in people:
         p.assigned_to_id = None
+        p.assigned_to_ciphertext = None
 
     state.is_locked = False
     state.run_at = None
