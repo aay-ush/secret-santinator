@@ -1,83 +1,84 @@
 {% extends "base.html" %}
+{% block title %}Change passphrase · Secret Santa{% endblock %}
 {% block content %}
-<div class="card">
-  <h1>Change Passphrase</h1>
-  <p class="muted">
-    You’re required to change your passphrase now (e.g., you logged in using a temporary one).
-    Choose a generated passphrase or type your own.
-  </p>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-9 col-lg-7">
+    <div class="glass p-4 p-md-5">
+      <h1 class="h3 fw-extrabold mb-2">Change passphrase 🔐</h1>
+      <p class="muted mb-4">
+        {% if current_user.must_change_passphrase %}
+          You signed in using a temporary passphrase. Please set a new one now.
+        {% else %}
+          Rotate your passphrase anytime. Your new passphrase can also be saved on this device.
+        {% endif %}
+      </p>
 
-  <form id="change-form" method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <form id="cp-form" method="post" class="vstack gap-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div class="form-row">
-      <label>Name</label>
-      <input class="input" type="text" value="{{ current_user.name }}" disabled>
+        <div class="pt-1">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="phrase_mode" value="generated" id="cp-generated" checked>
+            <label class="form-check-label" for="cp-generated">Use generated passphrase</label>
+          </div>
+          <div class="form-check mt-1">
+            <input class="form-check-input" type="radio" name="phrase_mode" value="manual" id="cp-manual">
+            <label class="form-check-label" for="cp-manual">Enter passphrase manually</label>
+          </div>
+
+          <div id="cp-generated-wrap" class="mt-3">
+            <div class="glass p-3 d-flex align-items-center justify-content-between gap-3">
+              <div>
+                <div class="muted small mb-1">Generated passphrase</div>
+                <div id="cp-passphrase" class="fw-bold mono" style="font-size:1.05rem;"></div>
+              </div>
+              <button class="btn btn-outline-light" type="button" id="cp-new">New</button>
+            </div>
+          </div>
+
+          <div id="cp-manual-wrap" class="mt-3" style="display:none;">
+            <label class="form-label">Passphrase</label>
+            <input class="form-control" type="password" id="cp-manual-pass" autocomplete="new-password" placeholder="Type a new passphrase">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="cp-show">
+              <label class="form-check-label muted" for="cp-show">Show passphrase</label>
+            </div>
+          </div>
+
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="cp-remember" checked>
+            <label class="form-check-label muted" for="cp-remember">Remember on this device</label>
+          </div>
+        </div>
+
+        <input type="hidden" name="client_hash" id="cp-client-hash">
+
+        <button class="btn btn-primary btn-lg w-100" type="submit">Update passphrase</button>
+
+        <div class="muted small">
+          Tip: if you use multiple devices, you can keep the same passphrase on each.
+        </div>
+      </form>
     </div>
-
-    <hr style="border-color: rgba(255,255,255,0.08); margin: 16px 0;">
-
-    <div class="form-row">
-      <label style="display:flex; gap:10px; align-items:center;">
-        <input type="radio" name="phrase_mode" value="generated" checked>
-        Use generated passphrase
-      </label>
-      <label style="display:flex; gap:10px; align-items:center; margin-top:8px;">
-        <input type="radio" name="phrase_mode" value="manual">
-        Enter passphrase manually
-      </label>
-    </div>
-
-    <!-- Generated -->
-    <div id="generated-wrap" style="margin-top:12px;">
-      <div id="chg-passphrase"
-           style="font-weight:700; font-size:1.1em; padding:10px; background:rgba(255,255,255,0.08); border-radius:10px; display:inline-block;">
-      </div>
-      <div style="margin-top:10px;">
-        <button class="btn" type="button" id="btn-new-passphrase">Give me another</button>
-      </div>
-    </div>
-
-    <!-- Manual -->
-    <div id="manual-wrap" style="margin-top:12px; display:none;">
-      <div class="form-row">
-        <label>Passphrase</label>
-        <input class="input" type="password" id="manual-passphrase" autocomplete="new-password"
-               placeholder="Type a new passphrase">
-      </div>
-      <label class="muted" style="display:flex; gap:10px; align-items:center;">
-        <input type="checkbox" id="show-manual">
-        Show passphrase
-      </label>
-    </div>
-
-    <label class="muted" style="display:flex; gap:10px; align-items:center; margin-top:12px;">
-      <input type="checkbox" id="remember-passphrase" checked>
-      Remember this passphrase on this device
-    </label>
-
-    <input type="hidden" name="client_hash">
-
-    <div style="margin-top:16px;">
-      <button class="btn btn-primary" type="submit">Update passphrase</button>
-    </div>
-  </form>
+  </div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("change-form");
-
+(function(){
+  const form = document.getElementById("cp-form");
   const modeRadios = Array.from(form.querySelectorAll('input[name="phrase_mode"]'));
-  const generatedWrap = document.getElementById("generated-wrap");
-  const manualWrap = document.getElementById("manual-wrap");
 
-  const phraseBox = document.getElementById("chg-passphrase");
-  const regenBtn = document.getElementById("btn-new-passphrase");
+  const genWrap = document.getElementById("cp-generated-wrap");
+  const manWrap = document.getElementById("cp-manual-wrap");
 
-  const manualInput = document.getElementById("manual-passphrase");
-  const showManual = document.getElementById("show-manual");
-  const remember = document.getElementById("remember-passphrase");
+  const phraseBox = document.getElementById("cp-passphrase");
+  const btnNew = document.getElementById("cp-new");
+
+  const manualInput = document.getElementById("cp-manual-pass");
+  const showManual = document.getElementById("cp-show");
+  const remember = document.getElementById("cp-remember");
+
+  const out = document.getElementById("cp-client-hash");
 
   let currentPhrase = "";
 
@@ -86,30 +87,28 @@ document.addEventListener("DOMContentLoaded", () => {
     phraseBox.textContent = currentPhrase;
   }
 
-  function currentMode() {
+  function currentMode(){
     return (modeRadios.find(r => r.checked)?.value) || "generated";
   }
 
-  function syncModeUI() {
+  function syncModeUI(){
     const gen = (currentMode() === "generated");
-    generatedWrap.style.display = gen ? "" : "none";
-    manualWrap.style.display = gen ? "none" : "";
+    genWrap.style.display = gen ? "" : "none";
+    manWrap.style.display = gen ? "none" : "";
   }
 
-  refreshPhrase();
-  syncModeUI();
-
-  regenBtn.addEventListener("click", refreshPhrase);
+  btnNew.addEventListener("click", refreshPhrase);
   modeRadios.forEach(r => r.addEventListener("change", syncModeUI));
 
   showManual.addEventListener("change", () => {
     manualInput.type = showManual.checked ? "text" : "password";
   });
 
+  refreshPhrase();
+  syncModeUI();
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    const name = "{{ current_user.name }}";
 
     let phrase = "";
     if (currentMode() === "manual") {
@@ -119,16 +118,15 @@ document.addEventListener("DOMContentLoaded", () => {
       phrase = currentPhrase;
     }
 
-    if (remember.checked) {
-      localStorage.setItem(keyForName(name), phrase);
-    } else {
-      localStorage.removeItem(keyForName(name));
+    const name = "{{ current_user.name if current_user.is_authenticated else '' }}";
+    if (name) {
+      if (remember.checked) localStorage.setItem(keyForName(name), phrase);
+      else localStorage.removeItem(keyForName(name));
     }
 
-    form.elements["client_hash"].value = await sha256Hex(phrase);
+    out.value = await sha256Hex(phrase);
     form.submit();
   });
-});
+})();
 </script>
 {% endblock %}
-

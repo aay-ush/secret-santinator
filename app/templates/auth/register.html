@@ -1,79 +1,74 @@
 {% extends "base.html" %}
-
+{% block title %}Register · Secret Santa{% endblock %}
 {% block content %}
-<div class="card">
-  <h1>Register</h1>
-
-  <form id="register-form" method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-    <div class="form-row">
-      <label>Name</label>
-      <input class="input" type="text" name="name" required>
-    </div>
-
-    {#
-    <div class="form-row">
-      <label>Email (optional)</label>
-      <input class="input" type="email" name="email">
-    </div>
-    #}
-
-    <hr style="border-color: rgba(255,255,255,0.08); margin: 16px 0;">
-
-    <h2 style="margin-bottom:8px;">Choose your passphrase</h2>
-    <p class="muted" style="margin-top:0;">
-      You can use a generated one or type your own. Passphrase is stored only on this device (unless you choose not to).
-    </p>
-
-    <div class="form-row">
-      <label style="display:flex; gap:10px; align-items:center;">
-        <input type="radio" name="phrase_mode" value="generated" checked>
-        Use generated passphrase
-      </label>
-      <label style="display:flex; gap:10px; align-items:center; margin-top:8px;">
-        <input type="radio" name="phrase_mode" value="manual">
-        Enter passphrase manually
-      </label>
-    </div>
-
-    <!-- Generated -->
-    <div id="generated-wrap" style="margin-top:12px;">
-      <div id="reg-passphrase"
-           style="font-weight:700; font-size:1.1em; padding:10px; background:rgba(255,255,255,0.08); border-radius:10px; display:inline-block;">
+<div class="row justify-content-center">
+  <div class="col-12 col-md-9 col-lg-7">
+    <div class="glass p-4 p-md-5">
+      <div class="d-flex align-items-start justify-content-between gap-3">
+        <div>
+          <h1 class="h3 fw-extrabold mb-2">Join the party 🎁</h1>
+          <p class="muted mb-0">Use a generated passphrase or type your own. Your passphrase can be saved on this device.</p>
+        </div>
+        <span class="badge badge-soft rounded-pill px-3 py-2">No email required</span>
       </div>
-      <div style="margin-top:10px;">
-        <button class="btn" type="button" id="btn-new-passphrase">Give me another</button>
-      </div>
+
+      <form id="register-form" method="post" class="vstack gap-3 mt-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div>
+          <label class="form-label">Name</label>
+          <input class="form-control" type="text" name="name" required>
+        </div>
+
+        <div class="pt-2">
+          <h2 class="h6 fw-bold mb-2">Choose your passphrase</h2>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="phrase_mode" value="generated" id="mode-generated" checked>
+            <label class="form-check-label" for="mode-generated">Use generated passphrase</label>
+          </div>
+          <div class="form-check mt-1">
+            <input class="form-check-input" type="radio" name="phrase_mode" value="manual" id="mode-manual">
+            <label class="form-check-label" for="mode-manual">Enter passphrase manually</label>
+          </div>
+
+          <!-- Generated -->
+          <div id="generated-wrap" class="mt-3">
+            <div class="glass p-3 d-flex align-items-center justify-content-between gap-3">
+              <div>
+                <div class="muted small mb-1">Generated passphrase</div>
+                <div id="reg-passphrase" class="fw-bold mono" style="font-size:1.05rem;"></div>
+              </div>
+              <button class="btn btn-outline-light" type="button" id="btn-new-passphrase">New</button>
+            </div>
+          </div>
+
+          <!-- Manual -->
+          <div id="manual-wrap" class="mt-3" style="display:none;">
+            <label class="form-label">Passphrase</label>
+            <input class="form-control" type="password" id="manual-passphrase" autocomplete="new-password" placeholder="Type a passphrase you will remember">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="show-manual">
+              <label class="form-check-label muted" for="show-manual">Show passphrase</label>
+            </div>
+          </div>
+
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="remember-passphrase" checked>
+            <label class="form-check-label muted" for="remember-passphrase">Remember this passphrase on this device</label>
+          </div>
+
+          <input type="hidden" name="client_hash">
+        </div>
+
+        <button class="btn btn-primary btn-lg w-100" type="submit">Register</button>
+
+        <div class="muted small">
+          ⚠️ If you clear browser storage or switch devices, you’ll need to type your passphrase or request a reset.
+        </div>
+      </form>
     </div>
-
-    <!-- Manual -->
-    <div id="manual-wrap" style="margin-top:12px; display:none;">
-      <div class="form-row">
-        <label>Passphrase</label>
-        <input class="input" type="password" id="manual-passphrase" autocomplete="new-password" placeholder="Type a passphrase you will remember">
-      </div>
-      <label class="muted" style="display:flex; gap:10px; align-items:center;">
-        <input type="checkbox" id="show-manual">
-        Show passphrase
-      </label>
-    </div>
-
-    <label class="muted" style="display:flex; gap:10px; align-items:center; margin-top:12px;">
-      <input type="checkbox" id="remember-passphrase" checked>
-      Remember this passphrase on this device
-    </label>
-
-    <input type="hidden" name="client_hash">
-
-    <div style="margin-top:16px;">
-      <button class="btn btn-primary" type="submit">Register</button>
-    </div>
-  </form>
-
-  <p class="muted" style="margin-top:12px;">
-    ⚠️ If you clear browser storage or switch devices, you will need to type your passphrase or request a reset.
-  </p>
+  </div>
 </div>
 
 <script>
@@ -146,4 +141,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 {% endblock %}
-

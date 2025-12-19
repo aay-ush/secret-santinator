@@ -1,32 +1,51 @@
 {% extends "base.html" %}
+{% block title %}Admin · Set temporary passphrase{% endblock %}
 {% block content %}
-<div class="card">
-  <h1>Set Temporary Passphrase</h1>
-  <p class="muted">
-    Participant: <strong>{{ participant.name }}</strong><br>
-    They will be forced to change this passphrase on first login.
-  </p>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-9 col-lg-7">
+    <div class="glass p-4 p-md-5">
+      <h1 class="h3 fw-extrabold mb-2">Set temporary passphrase</h1>
+      <p class="muted mb-4">
+        Participant: <span class="fw-semibold">{{ participant.name }}</span><br>
+        They will be forced to change this passphrase on first login.
+      </p>
 
-  <form id="temp-form" method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <form id="temp-form" method="post" class="vstack gap-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div class="form-row">
-      <label for="temp-passphrase">Temporary passphrase</label>
-      <input class="input" type="password" id="temp-passphrase" required>
+        <div>
+          <label for="temp-passphrase" class="form-label">Temporary passphrase</label>
+          <input class="form-control" type="password" id="temp-passphrase" required placeholder="Type a temporary passphrase">
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" id="temp-show">
+            <label class="form-check-label muted" for="temp-show">Show</label>
+          </div>
+          <div class="muted small mt-2">
+            Tip: share this in person. The system will require a change immediately after login.
+          </div>
+        </div>
+
+        <input type="hidden" name="client_hash" id="client-hash">
+
+        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-end">
+          <a class="btn btn-outline-light" href="{{ url_for('santa.admin_resets') }}">Back</a>
+          <button class="btn btn-primary" type="submit">Set temporary passphrase</button>
+        </div>
+      </form>
     </div>
-
-    <input type="hidden" name="client_hash" id="client-hash">
-
-    <button class="btn btn-primary" type="submit">Set temporary passphrase</button>
-    <a class="btn" href="{{ url_for('santa.admin_resets') }}" style="margin-left: 8px;">Back</a>
-  </form>
+  </div>
 </div>
 
 <script>
 (function(){
   const form = document.getElementById("temp-form");
   const pass = document.getElementById("temp-passphrase");
+  const show = document.getElementById("temp-show");
   const out = document.getElementById("client-hash");
+
+  show.addEventListener("change", () => {
+    pass.type = show.checked ? "text" : "password";
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -40,4 +59,3 @@
 })();
 </script>
 {% endblock %}
-

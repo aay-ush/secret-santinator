@@ -1,58 +1,80 @@
 {% extends "base.html" %}
+{% block title %}Dashboard · Secret Santa{% endblock %}
 {% block content %}
-<h1>Dashboard</h1>
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-extrabold mb-1">Dashboard</h1>
+    <div class="muted">
+      Participants: <span class="fw-semibold">{{ num_participants }}</span>
+      {% if assignment_locked %}
+        · <span class="badge text-bg-success ms-1">Locked</span>
+      {% else %}
+        · <span class="badge text-bg-warning ms-1">Unlocked</span>
+      {% endif %}
+    </div>
+  </div>
 
-{% if assignment_locked %}
-  <p>
-    <strong>Assignments are locked!</strong>
-    {% if assignment_run_at %}(run at {{ assignment_run_at }}){% endif %}
-  </p>
-{% else %}
-  <p>
-    🟡 <strong>Assignments are not locked</strong>
-  </p>
-{% endif %}
+  <div class="d-flex flex-column flex-sm-row gap-2">
+    <a class="btn btn-outline-light" href="{{ url_for('santa.my_assignment') }}">View my assignment</a>
+    <a class="btn btn-outline-light" href="{{ url_for('santa.preferences') }}">Preferences</a>
+    {% if is_admin %}
+      <a class="btn btn-primary" href="{{ url_for('santa.admin_participants') }}">Admin area</a>
+    {% endif %}
+  </div>
+</div>
 
-<p><strong>Total participants:</strong> {{ num_participants }}</p>
+<div class="row g-3">
+  <div class="col-12 col-lg-7">
+    <div class="glass p-4 h-100">
+      <h2 class="h5 fw-bold mb-2">Assignment status</h2>
+      {% if assignment_run_at %}
+        <p class="muted mb-3">Last run: <span class="fw-semibold">{{ assignment_run_at.strftime('%b %d, %Y %H:%M UTC') }}</span></p>
+      {% else %}
+        <p class="muted mb-3">Assignments haven’t been run yet.</p>
+      {% endif %}
 
-<hr>
+      {% if is_admin %}
+        <div class="d-flex flex-column flex-sm-row gap-2">
+          {% if assignment_locked %}
+            <form method="post" action="{{ url_for('santa.admin_unset_assignments') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-outline-light" type="submit">Unset & unlock</button>
+            </form>
+          {% else %}
+            <a class="btn btn-primary" href="{{ url_for('santa.admin_run_assignments') }}">Run & lock assignments</a>
+          {% endif %}
+        </div>
+        <div class="muted small mt-2">
+          Locked means preferences become view-only and assignments won’t change.
+        </div>
+      {% else %}
+        <div class="muted small">
+          The organizer will run the draw and lock it when ready.
+        </div>
+      {% endif %}
+    </div>
+  </div>
 
-<p>
-  <a href="{{ url_for('santa.my_assignment') }}">🎁 My Assignment</a>
-  &nbsp; | &nbsp;
-  <a href="{{ url_for('santa.preferences') }}">⚙️ My Preferences</a>
-</p>
+  <div class="col-12 col-lg-5">
+    <div class="glass p-4 h-100">
+      <h2 class="h5 fw-bold mb-2">Quick tips</h2>
+      <ul class="muted mb-0">
+        <li class="mb-2">Save your passphrase somewhere safe (or keep it saved on this device).</li>
+        <li class="mb-2">Set preferences before the organizer locks assignments.</li>
+        <li>If you lose your passphrase, request a reset and confirm in person.</li>
+      </ul>
 
-{% if is_admin %}
-  <hr>
-  <h2>Admin</h2>
-
-  <p>
-    <a href="{{ url_for('santa.admin_participants') }}">👥 Manage participants</a>
-  </p>
-
-  <p>
-    <a href="{{ url_for('santa.admin_run_assignments') }}">✅ Run & lock assignments</a>
-  </p>
-
-  <form method="post"
-        action="{{ url_for('santa.admin_unset_assignments') }}"
-        onsubmit="return confirm('Unset all assignments and unlock? Users can update preferences and you will need to re-run assignments.');">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit">🧹 Unset & unlock assignments</button>
-  </form>
-
-  <p style="margin-top:12px;">
-    <a href="{{ url_for('santa.admin_run_assignments') }}"
-       onclick="return confirm('Re-run and lock assignments now? Make sure participants and preferences are correct.');">
-      🔁 Re-run assignments now
-    </a>
-  </p>
-
-  <p style="margin-top:12px;">
-    <a href="{{ url_for('santa.admin_resets') }}">🔑 Reset requests ({{ reset_count }})</a>
-  </p>
-{% endif %}
-
+      {% if is_admin %}
+        <hr class="my-3" style="border-color: rgba(255,255,255,.14);">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <div class="fw-bold">Reset requests</div>
+            <div class="muted small">{{ reset_count }} pending</div>
+          </div>
+          <a class="btn btn-outline-light" href="{{ url_for('santa.admin_resets') }}">Review</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
 {% endblock %}
-

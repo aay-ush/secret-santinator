@@ -1,47 +1,60 @@
 {% extends "base.html" %}
+{% block title %}Admin · Participants{% endblock %}
 {% block content %}
-<h1>Participants</h1>
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-extrabold mb-1">Admin</h1>
+    <div class="muted">
+      Participants: <span class="fw-semibold">{{ participants|length }}</span>
+      {% if locked %} · <span class="badge text-bg-success">Assignments locked</span>{% endif %}
+    </div>
+  </div>
 
-{% if locked %}
-  <p>
-    <strong>Assignments are currently locked.</strong>
-    Deleting a participant will automatically <strong>unset & unlock</strong> assignments.
-    You can re-run assignments after the deletion.
-  </p>
-{% else %}
-  <p>
-    Assignments are unlocked. You can safely delete participants, then re-run assignments when ready.
-  </p>
-{% endif %}
+  <div class="d-flex flex-column flex-sm-row gap-2">
+    <a class="btn btn-outline-light" href="{{ url_for('santa.admin_resets') }}">Reset requests</a>
+    <a class="btn btn-outline-light" href="{{ url_for('santa.dashboard') }}">Dashboard</a>
+  </div>
+</div>
 
-<table border="1" cellpadding="8" cellspacing="0">
-  <tr>
-    <th>Name</th>
-    <th>Registered</th>
-    <th>Reset Requested</th>
-    <th>Actions</th>
-  </tr>
+<div class="glass p-4">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th class="muted">Assigned to</th>
+          <th class="muted">Reset?</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in participants %}
+          <tr>
+            <td class="fw-semibold">{{ p.name }}</td>
+            <td class="muted">{{ p.assigned_to.name if p.assigned_to else '—' }}</td>
+            <td>
+              {% if p.reset_requested %}
+                <span class="badge text-bg-warning">requested</span>
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <form method="post" action="{{ url_for('santa.admin_delete_participant', participant_id=p.id) }}"
+                    onsubmit="return confirm('Delete {{ p.name }}? This will unlock assignments if locked.');"
+                    class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-light">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-  {% for p in participants %}
-  <tr>
-    <td>{{ p.name }}</td>
-    <td>{{ p.registered_at }}</td>
-    <td>{{ "Yes" if p.reset_requested else "No" }}</td>
-    <td>
-      <form method="post"
-            action="{{ url_for('santa.admin_delete_participant', participant_id=p.id) }}"
-            onsubmit="return confirm('Delete {{ p.name }}? If assignments are locked, this will unset & unlock them. This cannot be undone.');"
-            style="display:inline;">
-		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit">Delete</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-
-<p style="margin-top:12px;">
-  <a href="{{ url_for('santa.dashboard') }}">Back to dashboard</a>
-</p>
+  <div class="muted small mt-3">
+    Note: deleting a participant will automatically unlock assignments (so you can re-run safely).
+  </div>
+</div>
 {% endblock %}
-

@@ -1,41 +1,65 @@
 {% extends "base.html" %}
+{% block title %}Preferences · Secret Santa{% endblock %}
 {% block content %}
-<h1>Gift Preferences</h1>
-<p>Set who you <strong>don’t want to gift to</strong> and who you <strong>don’t want to receive from</strong>.</p>
-<p>For the best fun, <strong>don't</strong>!</p>
-<p>These are used for deciding Santee assignments. Once assignments are locked, preferences can’t change.</p>
-
-<form method="post">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <h2>I don’t want to gift to</h2>
-  <p><small>Select zero or more.</small></p>
-  <div style="display:flex; flex-wrap:wrap; gap:12px;">
-    {% for p in candidates %}
-      <label style="min-width:200px;">
-        <input type="checkbox" name="dont_gift_to" value="{{ p.id }}"
-          {% if p.id in outgoing %}checked{% endif %}>
-        {{ p.name }}
-      </label>
-    {% endfor %}
+<div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-2 mb-4">
+  <div>
+    <h1 class="h3 fw-extrabold mb-1">Preferences</h1>
+    <div class="muted">
+      {% if locked %}
+        <span class="badge text-bg-success">Locked</span>
+        <span class="ms-2">View-only (assignments locked).</span>
+      {% else %}
+        <span class="badge text-bg-warning">Unlocked</span>
+        <span class="ms-2">You can edit until assignments are locked.</span>
+      {% endif %}
+    </div>
   </div>
-
-  <hr style="margin: 16px 0;">
-
-  <h2>I don’t want to receive from</h2>
-  <p><small>Select zero or more.</small></p>
-  <div style="display:flex; flex-wrap:wrap; gap:12px;">
-    {% for p in candidates %}
-      <label style="min-width:200px;">
-        <input type="checkbox" name="dont_receive_from" value="{{ p.id }}"
-          {% if p.id in incoming %}checked{% endif %}>
-        {{ p.name }}
-      </label>
-    {% endfor %}
+  <div class="muted small">
+    {% if assignment_run_at %}Last run: {{ assignment_run_at.strftime('%b %d, %Y %H:%M UTC') }}{% endif %}
   </div>
+</div>
 
-  <br><br>
-  <button type="submit">Save Preferences</button>
-  <a href="{{ url_for('santa.dashboard') }}" style="margin-left:12px;">Back</a>
-</form>
+<div class="glass p-4">
+  <p class="muted mb-4">
+    Use this to avoid specific matches. These are <span class="fw-semibold">directed</span> rules:
+    “I cannot gift to X” and “X cannot gift to me”.
+  </p>
+
+  <form method="post" class="row g-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="col-12 col-lg-6">
+      <h2 class="h6 fw-bold mb-2">I cannot gift to</h2>
+      <div class="vstack gap-2" style="max-height: 360px; overflow:auto;">
+        {% for p in candidates %}
+          <label class="glass p-2 rounded-4 d-flex align-items-center gap-2">
+            <input class="form-check-input m-0" type="checkbox" name="dont_gift_to" value="{{ p.id }}"
+                   {% if p.id in outgoing %}checked{% endif %}
+                   {% if locked %}disabled{% endif %}>
+            <span>{{ p.name }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <h2 class="h6 fw-bold mb-2">Cannot receive gift from</h2>
+      <div class="vstack gap-2" style="max-height: 360px; overflow:auto;">
+        {% for p in candidates %}
+          <label class="glass p-2 rounded-4 d-flex align-items-center gap-2">
+            <input class="form-check-input m-0" type="checkbox" name="dont_receive_from" value="{{ p.id }}"
+                   {% if p.id in incoming %}checked{% endif %}
+                   {% if locked %}disabled{% endif %}>
+            <span>{{ p.name }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-12 d-flex flex-column flex-sm-row justify-content-end gap-2">
+      <a class="btn btn-outline-light" href="{{ url_for('santa.dashboard') }}">Back</a>
+      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %}>Save preferences</button>
+    </div>
+  </form>
+</div>
 {% endblock %}
-
