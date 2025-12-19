@@ -17,6 +17,7 @@ def create_app() -> Flask:
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///secretsanta.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
 
     # Admin is the participant whose name matches this exactly
     app.config["SANTA_ADMIN_NAME"] = os.environ.get("SANTA_ADMIN_NAME", "").strip()

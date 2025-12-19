@@ -2,11 +2,12 @@
 {% block content %}
 <h1>Gift Preferences</h1>
 <p>Set who you <strong>don’t want to gift to</strong> and who you <strong>don’t want to receive from</strong>.</p>
-<p>These are used when the organizer runs assignments. Once assignments are locked, preferences can’t change.</p>
+<p>For the best fun, <strong>don't</strong>!</p>
+<p>These are used for deciding Santee assignments. Once assignments are locked, preferences can’t change.</p>
 
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <h2>🚫 I don’t want to gift to</h2>
+  <h2>I don’t want to gift to</h2>
   <p><small>Select zero or more.</small></p>
   <div style="display:flex; flex-wrap:wrap; gap:12px;">
     {% for p in candidates %}
@@ -20,7 +21,7 @@
 
   <hr style="margin: 16px 0;">
 
-  <h2>🚫 I don’t want to receive from</h2>
+  <h2>I don’t want to receive from</h2>
   <p><small>Select zero or more.</small></p>
   <div style="display:flex; flex-wrap:wrap; gap:12px;">
     {% for p in candidates %}

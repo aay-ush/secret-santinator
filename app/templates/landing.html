@@ -3,17 +3,19 @@
 <h1>🎄 Secret Santa</h1>
 
 {% if registration_closed %}
-  <h2>✅ Registration Closed</h2>
+  <h2>Registration Closed</h2>
   <p>
     Assignments have been generated and locked{% if assignment_run_at %} (run at {{ assignment_run_at }}){% endif %}.
   </p>
 
-  <h3>How to see your assignment</h3>
+  <h3>How to see your assignment?</h3>
   <ol>
-    <li>On this same device/browser where you registered, click <strong>Login</strong>.</li>
+    <li>Click <strong>Login</strong>.</li>
     <li>Enter your <strong>name</strong>.</li>
     <li>This device will use the saved passphrase to log you in automatically.</li>
+    <li>If it is a different device, enter passphrase manually; if you don't remember it, request admin reset.</li>
     <li>Then click <strong>My Assignment</strong> to see who you got 🎁</li>
+    <li><strong>Only you can see your assignment unless you share your login ;)</strong></li>
   </ol>
 
   <p>
@@ -29,37 +31,43 @@
   </ol>
 
 {% else %}
-  <h2>📝 Registration Open</h2>
+  <h2>Registration Open!</h2>
   <p>
-    Registering is quick: your device will generate a secure passphrase and store it locally.
-    The server never stores your passphrase—only a salted hash.
+    Yay, you made it to v2.0!
+    Unlike before there is no need to trust <em>you-know-who</em> to not peek at your secret assignment!
+    <li>Your passphrase is known only to you and your device.</li>
   </p>
 
-  <h3>Register (first time)</h3>
-  <ol>
-    <li>Click <strong>Register</strong>.</li>
-    <li>Enter your <strong>name</strong> (must be unique).</li>
-    <li>Your device will show a generated passphrase — keep it safe.</li>
-    <li>Click <strong>Use this passphrase & Register</strong>.</li>
-  </ol>
-
-  <p>
+  {#<p>
     <a href="{{ url_for('auth.register') }}">🆕 Register now</a>
     &nbsp; | &nbsp;
     <a href="{{ url_for('auth.login') }}">🔐 Login</a>
   </p>
+  #}
+
+  <h3>Register (one-time)</h3>
+  <ol>
+    <li>Click <strong>Register</strong>.</li>
+    <li>Enter your <strong>name</strong> (must be unique)</li>
+    <li>Your device will show a generated passphrase, note it.</li>
+    <li>Click <strong>Use this passphrase & Register</strong>.</li>
+  </ol>
+    <li>Your passphrase will be stored on the device for easy login later.</li>
 
   <h3>Important notes</h3>
   <ul>
-    <li><strong>Use the same browser/device</strong> later to log in automatically.</li>
-    <li>If you clear browser storage or switch devices, you’ll need an <strong>admin-approved reset</strong>.</li>
+    <li>Use the <strong>same browser/device</strong> later to log in automatically.</li>
+    <li>If you clear browser storage or switch devices, you’ll need to either type passphrase manually or request admin to reset your passphrase. </li?
+    <li>Once everyone gets their santee assignments, registration will close. </li>
     <li>Once the organizer locks assignments, <strong>registration closes</strong>.</li>
   </ul>
 {% endif %}
 
+{#
 <hr>
 <p style="font-size: 0.95em;">
   Organizer tip: log in as the admin user and click <strong>Run & lock assignments</strong> when everyone has registered.
 </p>
+#}
 {% endblock %}
 
