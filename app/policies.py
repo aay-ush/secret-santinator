@@ -46,6 +46,13 @@ class LoginRequiredMixin(MethodView):
     def dispatch_request(self, *args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for("auth.login"))
+
+        # ✅ Force passphrase change immediately after temp passphrase login
+        # Allow only change-passphrase + logout while in this state.
+        if getattr(current_user, "must_change_passphrase", False):
+            if request.endpoint not in {"auth.change_passphrase", "auth.logout"}:
+                return redirect(url_for("auth.change_passphrase"))
+
         return super().dispatch_request(*args, **kwargs)
 
 

@@ -115,9 +115,11 @@ class AdminResetPasskeyView(AdminRequiredMixin):
             return redirect(url_for("santa.admin_reset_passkey", participant_id=participant_id))
 
         p.passkey_hash = hash_client_key(client_hash)
+        p.must_change_passphrase = True
         p.reset_requested = False
         db.session.commit()
-        flash(f"Reset complete for {p.name}.", "success")
+
+        flash(f"Temporary passphrase set for {p.name}. They must change it on first login.", "success")
         return redirect(url_for("santa.admin_resets"))
 
 class AdminDeleteParticipantView(AdminRequiredMixin):
@@ -173,9 +175,5 @@ santa_bp.add_url_rule("/admin/resets", view_func=AdminResetsView.as_view("admin_
 santa_bp.add_url_rule("/admin/reset-passkey/<int:participant_id>", view_func=AdminResetPasskeyView.as_view("admin_reset_passkey"), methods=["GET", "POST"])
 
 santa_bp.add_url_rule("/admin/participants", view_func=AdminParticipantsView.as_view("admin_participants"))
-santa_bp.add_url_rule(
-    "/admin/participants/<int:participant_id>/delete",
-    view_func=AdminDeleteParticipantView.as_view("admin_delete_participant"),
-    methods=["POST"],
-)
+santa_bp.add_url_rule("/admin/participants/<int:participant_id>/delete", view_func=AdminDeleteParticipantView.as_view("admin_delete_participant"), methods=["POST"])
 

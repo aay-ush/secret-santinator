@@ -1,28 +1,21 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="card">
-  <h1>Register</h1>
+  <h1>Change Passphrase</h1>
+  <p class="muted">
+    You’re required to change your passphrase now (e.g., you logged in using a temporary one).
+    Choose a generated passphrase or type your own.
+  </p>
 
-  <form id="register-form" method="post">
+  <form id="change-form" method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="form-row">
       <label>Name</label>
-      <input class="input" type="text" name="name" required>
-    </div>
-
-    <div class="form-row">
-      <label>Email (optional)</label>
-      <input class="input" type="email" name="email">
+      <input class="input" type="text" value="{{ current_user.name }}" disabled>
     </div>
 
     <hr style="border-color: rgba(255,255,255,0.08); margin: 16px 0;">
-
-    <h2 style="margin-bottom:8px;">Choose your passphrase</h2>
-    <p class="muted" style="margin-top:0;">
-      You can use a generated one or type your own. We store it only on this device (unless you choose not to).
-    </p>
 
     <div class="form-row">
       <label style="display:flex; gap:10px; align-items:center;">
@@ -37,7 +30,7 @@
 
     <!-- Generated -->
     <div id="generated-wrap" style="margin-top:12px;">
-      <div id="reg-passphrase"
+      <div id="chg-passphrase"
            style="font-weight:700; font-size:1.1em; padding:10px; background:rgba(255,255,255,0.08); border-radius:10px; display:inline-block;">
       </div>
       <div style="margin-top:10px;">
@@ -49,7 +42,8 @@
     <div id="manual-wrap" style="margin-top:12px; display:none;">
       <div class="form-row">
         <label>Passphrase</label>
-        <input class="input" type="password" id="manual-passphrase" autocomplete="new-password" placeholder="Type a passphrase you will remember">
+        <input class="input" type="password" id="manual-passphrase" autocomplete="new-password"
+               placeholder="Type a new passphrase">
       </div>
       <label class="muted" style="display:flex; gap:10px; align-items:center;">
         <input type="checkbox" id="show-manual">
@@ -65,24 +59,20 @@
     <input type="hidden" name="client_hash">
 
     <div style="margin-top:16px;">
-      <button class="btn btn-primary" type="submit">Register</button>
+      <button class="btn btn-primary" type="submit">Update passphrase</button>
     </div>
   </form>
-
-  <p class="muted" style="margin-top:12px;">
-    ⚠️ If you clear browser storage or switch devices, you will need an organizer reset.
-  </p>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("register-form");
+  const form = document.getElementById("change-form");
 
   const modeRadios = Array.from(form.querySelectorAll('input[name="phrase_mode"]'));
   const generatedWrap = document.getElementById("generated-wrap");
   const manualWrap = document.getElementById("manual-wrap");
 
-  const phraseBox = document.getElementById("reg-passphrase");
+  const phraseBox = document.getElementById("chg-passphrase");
   const regenBtn = document.getElementById("btn-new-passphrase");
 
   const manualInput = document.getElementById("manual-passphrase");
@@ -101,13 +91,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function syncModeUI() {
-    const m = currentMode();
-    const gen = (m === "generated");
+    const gen = (currentMode() === "generated");
     generatedWrap.style.display = gen ? "" : "none";
     manualWrap.style.display = gen ? "none" : "";
   }
 
-  // init
   refreshPhrase();
   syncModeUI();
 
@@ -121,8 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const name = (form.elements["name"]?.value || "").trim();
-    if (!name) { alert("Name is required."); return; }
+    const name = "{{ current_user.name }}";
 
     let phrase = "";
     if (currentMode() === "manual") {

@@ -77,6 +77,11 @@ class LoginView(MethodView):
             return render_template("auth/login.html")
 
         login_user(user)
+
+        # If the organizer issued a temporary passphrase, force change on first use.
+        if getattr(user, "must_change_passphrase", False):
+            return redirect(url_for("auth.change_passphrase"))
+
         return redirect(url_for("santa.dashboard"))
 
 
@@ -107,9 +112,35 @@ class RequestResetView(MethodView):
         flash("Reset requested. Please contact the organizer in person to complete it.", "info")
         return redirect(url_for("auth.login"))
 
+class ChangePassphraseView(MethodView):
+    """
+    Used after logging in with a temporary passphrase (or anytime user wants to rotate).
+    Uses the SAME UI pattern as register: generated phrase or manual entry.
+    """
+    def get(self):
+        if not current_user.is_authenticated:
+            return redirect(url_for("auth.login"))
+        return render_template("auth/change_passphrase.html")
+
+    def post(self):
+        if not current_user.is_authenticated:
+            return redirect(url_for("auth.login"))
+
+        client_hash = (request.form.get("client_hash") or "").strip().lower()
+        if not client_hash:
+            flash("Missing passphrase hash. Please try again.", "error")
+            return render_template("auth/change_passphrase.html")
+
+        current_user.passkey_hash = hash_client_key(client_hash)
+        current_user.must_change_passphrase = False
+        db.session.commit()
+
+        flash("Passphrase updated.", "success")
+        return redirect(url_for("santa.dashboard"))
 
 auth_bp.add_url_rule("/register", view_func=RegisterView.as_view("register"), methods=["GET", "POST"])
 auth_bp.add_url_rule("/login", view_func=LoginView.as_view("login"), methods=["GET", "POST"])
 auth_bp.add_url_rule("/logout", view_func=LogoutView.as_view("logout"), methods=["GET"])
 auth_bp.add_url_rule("/request-reset", view_func=RequestResetView.as_view("request_reset"), methods=["POST"])
+auth_bp.add_url_rule("/change-passphrase", view_func=ChangePassphraseView.as_view("change_passphrase"), methods=["GET", "POST"])
 

@@ -1,48 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Reset passphrase for {{ participant.name }}</h1>
-
-<p>
-  Use this only after personal confirmation. The participant should be present and should keep the new passphrase safe.
-</p>
-
-<form id="reset-form" method="post">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <p><strong>New passphrase (generated on this device):</strong></p>
-  <div id="reset-passphrase" style="font-weight:bold; font-size:1.1em;"></div>
-  <button type="button" id="reset-new">Give me another</button>
-
-  <input type="hidden" name="client_hash" id="reset-client-hash">
-
-  <p style="margin-top:1em;">
-    This device will remember it under the participant’s name.
+<div class="card">
+  <h1>Set Temporary Passphrase</h1>
+  <p class="muted">
+    Participant: <strong>{{ participant.name }}</strong><br>
+    They will be forced to change this passphrase on first login.
   </p>
 
-  <button type="submit">Use this passphrase</button>
-</form>
+  <form id="temp-form" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-row">
+      <label for="temp-passphrase">Temporary passphrase</label>
+      <input class="input" type="password" id="temp-passphrase" required>
+    </div>
+
+    <input type="hidden" name="client_hash" id="client-hash">
+
+    <button class="btn btn-primary" type="submit">Set temporary passphrase</button>
+    <a class="btn" href="{{ url_for('santa.admin_resets') }}" style="margin-left: 8px;">Back</a>
+  </form>
+</div>
 
 <script>
-let currentPhrase = "";
+(function(){
+  const form = document.getElementById("temp-form");
+  const pass = document.getElementById("temp-passphrase");
+  const out = document.getElementById("client-hash");
 
-function refreshPhrase() {
-  currentPhrase = generatePassphrase(6);
-  document.getElementById("reset-passphrase").textContent = currentPhrase;
-}
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const phrase = (pass.value || "").trim();
+    if (!phrase) { alert("Temporary passphrase is required."); return; }
 
-document.getElementById("reset-new").addEventListener("click", refreshPhrase);
-refreshPhrase();
-
-document.getElementById("reset-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  // Save locally on this device
-  localStorage.setItem(keyForName("{{ participant.name }}"), currentPhrase);
-
-  // Send only SHA-256(passphrase)
-  document.getElementById("reset-client-hash").value = await sha256Hex(currentPhrase);
-
-  e.target.submit();
-});
+    // Send only SHA-256(passphrase) to server
+    out.value = await sha256Hex(phrase);
+    e.target.submit();
+  });
+})();
 </script>
 {% endblock %}
 

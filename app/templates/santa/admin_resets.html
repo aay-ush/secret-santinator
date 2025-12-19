@@ -1,20 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Pending Reset Requests</h1>
+<div class="card">
+  <h1>Reset Requests</h1>
+  <p class="muted">
+    These participants requested a reset. Click to set a temporary passphrase.
+  </p>
 
-{% if not pending %}
-  <p>No pending reset requests.</p>
-{% else %}
-  <ul>
-    {% for p in pending %}
-      <li>
-        <strong>{{ p.name }}</strong> (id: {{ p.id }})
-        — <a href="{{ url_for('santa.admin_reset_passkey', participant_id=p.id) }}">Reset now (with participant present)</a>
-      </li>
-    {% endfor %}
-  </ul>
-{% endif %}
-
-<p><a href="{{ url_for('santa.dashboard') }}">Back to dashboard</a></p>
+  {% if pending and pending|length > 0 %}
+    <ul>
+      {% for p in pending %}
+        <li style="margin-bottom: 10px;">
+          <strong>{{ p.name }}</strong>
+          &nbsp;—&nbsp;
+          <a class="btn btn-primary" href="{{ url_for('santa.admin_reset_passkey', participant_id=p.id) }}">
+            Set temporary passphrase
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No pending reset requests.</p>
+  {% endif %}
+</div>
 {% endblock %}
 

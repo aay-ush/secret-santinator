@@ -25,6 +25,9 @@ class Participant(UserMixin, db.Model):
     )
 
     reset_requested = db.Column(db.Boolean, default=False, nullable=False)
+    # Organizer-issued temporary passphrase is active; force change on first login.
+    must_change_passphrase = db.Column(db.Boolean, default=False, nullable=False)
+
 
 
 class Exclusion(db.Model):

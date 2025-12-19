@@ -1,41 +1,131 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Login</h1>
+<div class="card">
+  <h1>Login</h1>
+  <p class="muted">You can login using the saved passphrase on this device, or enter one manually (e.g., a temporary passphrase from the organizer).</p>
 
-<form id="login-form" method="post">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Name: <input type="text" name="name" id="login-name" required></label><br>
-  <input type="hidden" name="client_hash" id="login-client-hash">
-  <button type="submit">Login using saved passphrase on this device</button>
-</form>
+  <form id="login-form" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-<p id="login-status" style="margin-top:1em;"></p>
+    <div class="form-row">
+      <label for="login-name">Name</label>
+      <input class="input" type="text" name="name" id="login-name" placeholder="e.g. Alice" required>
+    </div>
 
-<form id="reset-form" method="post" action="{{ url_for('auth.request_reset') }}" style="margin-top:1em;">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input type="hidden" name="name" id="reset-name">
-  <button type="submit">I lost my passphrase – request admin reset</button>
-</form>
+    <hr style="border-color: rgba(255,255,255,0.08); margin: 16px 0;">
+
+    <h2 style="margin-bottom:8px;">Passphrase</h2>
+
+    <div class="form-row">
+      <label for="login-passphrase" class="muted">Enter passphrase manually (optional)</label>
+      <input class="input" type="password" id="login-passphrase" autocomplete="current-password"
+             placeholder="Leave blank to use saved passphrase">
+    </div>
+
+    <label class="muted" style="display:flex; gap:10px; align-items:center; margin-top:8px;">
+      <input type="checkbox" id="login-show">
+      Show passphrase
+    </label>
+
+    <label class="muted" style="display:flex; gap:10px; align-items:center; margin-top:8px;">
+      <input type="checkbox" id="login-remember" checked>
+      Remember this passphrase on this device (recommended)
+    </label>
+
+    <input type="hidden" name="client_hash" id="login-client-hash">
+
+    <div style="margin-top:14px;">
+      <button class="btn btn-primary" type="submit">
+        Login
+      </button>
+    </div>
+  </form>
+
+  <p id="login-status" class="muted" style="margin-top:12px;"></p>
+
+  <hr style="border-color: rgba(255,255,255,0.08); margin: 16px 0;">
+
+  <h2 style="margin-bottom:8px;">Lost your passphrase?</h2>
+  <p class="muted" style="margin-top:0;">
+    Request an organizer reset (you’ll confirm your identity in person).
+  </p>
+
+  <form id="reset-form" method="post" action="{{ url_for('auth.request_reset') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-row">
+      <label for="reset-name">Name</label>
+      <input class="input" type="text" name="name" id="reset-name" placeholder="same name as above" required>
+    </div>
+
+    <button class="btn" type="submit" id="reset-btn" disabled>
+      I lost my passphrase – request admin reset
+    </button>
+  </form>
+</div>
 
 <script>
-document.getElementById("login-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
+(function(){
+  const loginForm = document.getElementById("login-form");
+  const loginName = document.getElementById("login-name");
+  const loginHash = document.getElementById("login-client-hash");
+  const statusEl = document.getElementById("login-status");
 
-  const name = document.getElementById("login-name").value.trim();
-  if (!name) { alert("Name is required."); return; }
+  const passInput = document.getElementById("login-passphrase");
+  const showPass = document.getElementById("login-show");
+  const remember = document.getElementById("login-remember");
 
-  document.getElementById("reset-name").value = name;
+  const resetName = document.getElementById("reset-name");
+  const resetBtn  = document.getElementById("reset-btn");
 
-  const phrase = localStorage.getItem(keyForName(name));
-  if (!phrase) {
-    document.getElementById("login-status").textContent =
-      "No passphrase stored on this device for that name. Request a reset and contact the organizer in person.";
-    return;
+  function syncNames() {
+    const v = loginName.value.trim();
+    resetName.value = v;
+    resetBtn.disabled = !v;
   }
 
-  document.getElementById("login-client-hash").value = await sha256Hex(phrase);
-  e.target.submit();
-});
+  loginName.addEventListener("input", syncNames);
+
+  resetName.addEventListener("input", () => {
+    resetBtn.disabled = !resetName.value.trim();
+  });
+
+  showPass.addEventListener("change", () => {
+    passInput.type = showPass.checked ? "text" : "password";
+  });
+
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    statusEl.textContent = "";
+
+    const name = loginName.value.trim();
+    if (!name) { alert("Name is required."); return; }
+    syncNames();
+
+    let phrase = (passInput.value || "").trim();
+
+    // If user didn't type one, use stored passphrase
+    if (!phrase) {
+      phrase = localStorage.getItem(keyForName(name)) || "";
+      if (!phrase) {
+        statusEl.textContent =
+          "No saved passphrase found on this device. If the organizer gave you a temporary passphrase, type it above. Otherwise request a reset.";
+        return;
+      }
+    }
+
+    if (remember.checked) {
+      localStorage.setItem(keyForName(name), phrase);
+    } else {
+      localStorage.removeItem(keyForName(name));
+    }
+
+    loginHash.value = await sha256Hex(phrase);
+    e.target.submit();
+  });
+
+  syncNames();
+})();
 </script>
 {% endblock %}
 
