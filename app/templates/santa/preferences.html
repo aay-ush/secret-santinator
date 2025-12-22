@@ -7,10 +7,10 @@
     <div class="muted">
       {% if locked %}
         <span class="badge text-bg-success">Locked</span>
-        <span class="ms-2">View-only (assignments locked).</span>
+        <span class="ms-2">View-only (Santees are assigned).</span>
       {% else %}
         <span class="badge text-bg-warning">Unlocked</span>
-        <span class="ms-2">You can edit until assignments are locked.</span>
+        <span class="ms-2">You can edit until Santees are assigned.</span>
       {% endif %}
     </div>
   </div>
@@ -21,7 +21,10 @@
 
 <div class="glass p-4">
   <p class="muted mb-4">
-    Use this to avoid specific matches. These are <span class="fw-semibold">directed</span> rules:
+    Specify rules to avoid matches. (Avoid for maximum fun).
+  </p>
+  <p>
+    These are <span class="fw-semibold">directed</span> rules:
     “I cannot gift to X” and “X cannot gift to me”.
   </p>
 
@@ -43,7 +46,7 @@
     </div>
 
     <div class="col-12 col-lg-6">
-      <h2 class="h6 fw-bold mb-2">Cannot receive gift from</h2>
+      <h2 class="h6 fw-bold mb-2">I cannot receive gift from</h2>
       <div class="vstack gap-2" style="max-height: 360px; overflow:auto;">
         {% for p in candidates %}
           <label class="glass p-2 rounded-4 d-flex align-items-center gap-2">

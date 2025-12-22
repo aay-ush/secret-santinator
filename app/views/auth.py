@@ -35,12 +35,12 @@ class RegisterView(MethodView):
             return render_template("auth/register.html")
 
         if Participant.query.filter_by(name=name).first():
-            flash("That name is already registered.", "error")
+            flash(f"{name} is already registered.", "error")
             return render_template("auth/register.html")
 
-        if email and Participant.query.filter_by(email=email).first():
-            flash("That email is already registered.", "error")
-            return render_template("auth/register.html")
+        #if email and Participant.query.filter_by(email=email).first():
+        #    flash("That email is already registered.", "error")
+        #    return render_template("auth/register.html")
 
         p = Participant(
             name=name,
@@ -73,12 +73,12 @@ class LoginView(MethodView):
 
         user = Participant.query.filter_by(name=name).first()
         if not user or not client_hash or not verify_client_key(client_hash, user.passkey_hash):
-            flash("Invalid name or this device does not have the correct saved passphrase.", "error")
+            flash("Bad Santa! Invalid name or this device does not have the correct saved passphrase.", "error")
             return render_template("auth/login.html")
 
         login_user(user)
 
-        # If the organizer issued a temporary passphrase, force change on first use.
+        # If the admin issued a temporary passphrase, force change on first use.
         if getattr(user, "must_change_passphrase", False):
             return redirect(url_for("auth.change_passphrase"))
 
@@ -104,12 +104,12 @@ class RequestResetView(MethodView):
 
         p = Participant.query.filter_by(name=name).first()
         if not p:
-            flash("No such participant.", "error")
+            flash(f"Unknown Santa: {name}", "error")
             return redirect(url_for("auth.login"))
 
         p.reset_requested = True
         db.session.commit()
-        flash("Reset requested. Please contact the organizer in person to complete it.", "info")
+        flash("Reset requested. Please contact the admin to complete it.", "info")
         return redirect(url_for("auth.login"))
 
 class ChangePassphraseView(MethodView):

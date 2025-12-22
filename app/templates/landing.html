@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Secret Santa 🎁{% endblock %}
+{% block title %}Secret Santa 2.0 🎁{% endblock %}
 
 {% block content %}
 <section class="glass p-4 p-md-5">
@@ -12,9 +12,12 @@
         <span class="muted">{{ num_participants }} participants</span>
       </div>
 
-      <h1 class="display-6 fw-extrabold hero-title mb-3">Spread the cheer, keep the surprise.</h1>
+      <h1 class="display-6 fw-extrabold hero-title mb-3">Spread cheers, not data.</h1>
       <p class="muted hero-sub mb-4">
-        Register with just your name and a passphrase. Later, log in to see your assignment once the organizer runs the draw.
+      You made it to 2.0! And this time there's no need to just <em>trust </em>  You-Know-Who to not peek at your assignments!
+      </p>
+      <p class="muted hero-sub mb-4">
+        Register with just your name and a passphrase. Later, log in to see your Santee assignment after the draw.
       </p>
 
       <div class="d-flex flex-column flex-sm-row gap-2">
@@ -28,11 +31,11 @@
 
       <div class="mt-4">
         {% if assignment_run_at %}
-          <span class="badge rounded-pill text-bg-success">Assignments run</span>
-          <span class="muted ms-2">Last run: {{ assignment_run_at.strftime('%b %d, %Y %H:%M UTC') }}</span>
+          <span class="badge rounded-pill text-bg-success">Assignments Done!</span>
+          <span class="muted ms-2">Last draw: {{ assignment_run_at.strftime('%b %d, %Y %H:%M UTC') }}</span>
         {% else %}
-          <span class="badge rounded-pill text-bg-warning">Not run yet</span>
-          <span class="muted ms-2">Organizer hasn’t run assignments yet.</span>
+          <span class="badge rounded-pill text-bg-warning">No assignments yet</span>
+          <span class="muted ms-2">Pot's still open, throw your name in the hat!</span>
         {% endif %}
       </div>
     </div>
@@ -42,9 +45,9 @@
         <h2 class="h5 fw-bold mb-3">How it works</h2>
         <ol class="mb-0 muted">
           <li class="mb-2">Register with your name + passphrase (saved on this device).</li>
-          <li class="mb-2">Add preferences (who you can’t gift to) if your group needs rules.</li>
-          <li class="mb-2">Organizer runs the draw and locks it.</li>
-          <li>Log in and view your assignment 🎉</li>
+          <li class="mb-2">Add your Santa & Santee preferences or not.</li>
+          <li class="mb-2">When all are in, the names will be drawn and locked.</li>
+          <li>Log in again to view your Santee 🎉</li>
         </ol>
       </div>
     </div>

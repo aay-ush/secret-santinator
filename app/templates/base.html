@@ -8,7 +8,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Secret Santa 🎁{% endblock %}</title>
+  <title>{% block title %}Secret Santa 2.0 🎁{% endblock %}</title>
 
   <!-- Fonts + Bootstrap -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -377,7 +377,7 @@
   <div class="snow" aria-hidden="true"></div>
   <header class="titlebar">
     <div class="container container-narrow d-flex align-items-center justify-content-between">
-      <a class="titlebar-brand" href="{{ url_for('public.landing') }}">Secret Santa</a>
+      <a class="titlebar-brand" href="{{ url_for('public.landing') }}">Secret Santa 2.0</a>
       <div class="titlebar-right d-none d-sm-flex align-items-center gap-2">
           <!--span class="titlebar-badge badge rounded-pill">🎁 Festive Mode</span-->
       </div>
@@ -457,11 +457,12 @@
 
   <footer class="py-4">
     <div class="container container-narrow muted small d-flex flex-column flex-md-row gap-2 justify-content-between">
-      <div>🎄 Built for private groups. No emails required.</div>
-      <div>Tip: save your passphrase somewhere safe.</div>
+        <div>🎄 Built for awesome groups => No emails required.</div>
+      <div>Font “Sleigh” ©Barretrm.com — generously released for free use.</div>
+      <!--div>Tip: save your passphrase somewhere safe.</div-->
     </div>
   
-<div class="text-center small muted pb-3">Font “Sleigh” © Barretrm.com — generously released for free use.</div>
+<!--div class="text-center small muted pb-3">Font “Sleigh” ©Barretrm.com — generously released for free use.</div-->
 </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"

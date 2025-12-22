@@ -32,18 +32,18 @@ class MyAssignmentView(LoginRequiredMixin):
     def get(self):
         token = getattr(current_user, "assigned_to_ciphertext", None)
         if not token:
-            flash("Assignments have not been run yet (or you are excluded).", "info")
+            flash("Santees are yet to be assigned (or you are excluded!).", "info")
             return redirect(url_for("santa.dashboard"))
 
         try:
             receiver_id = decrypt_assignment_recipient(token)
         except ValueError:
-            flash("Could not decrypt your assignment. Please ask the organizer to unset and rerun assignments.", "error")
+            flash("Could not decrypt your assignment. Please ask the admin to unset and rerun assignments.", "error")
             return redirect(url_for("santa.dashboard"))
 
         assigned_to = Participant.query.get(receiver_id)
         if not assigned_to:
-            flash("Your assigned recipient no longer exists. Please ask the organizer to rerun assignments.", "error")
+            flash("Your assigned recipient no longer exists. Please ask the admin to rerun assignments.", "error")
             return redirect(url_for("santa.dashboard"))
 
         return render_template("santa/assignment.html", assigned_to=assigned_to)
@@ -95,7 +95,7 @@ class AdminRunAssignmentsView(AdminRequiredMixin):
     def get(self):
         try:
             run_and_lock_assignments()
-            flash("Assignments have been run and locked.", "success")
+            flash("Santeess have been assigned and assingments are locked.", "success")
         except AssignmentError as e:
             flash(f"Failed to run assignments: {e}", "error")
         return redirect(url_for("santa.dashboard"))
