@@ -64,69 +64,106 @@
 </div>
 
 <script>
-(function(){
-  const form = document.getElementById("cp-form");
-  const modeRadios = Array.from(form.querySelectorAll('input[name="phrase_mode"]'));
-
-  const genWrap = document.getElementById("cp-generated-wrap");
-  const manWrap = document.getElementById("cp-manual-wrap");
-
-  const phraseBox = document.getElementById("cp-passphrase");
-  const btnNew = document.getElementById("cp-new");
-
-  const manualInput = document.getElementById("cp-manual-pass");
-  const showManual = document.getElementById("cp-show");
-  const remember = document.getElementById("cp-remember");
-
-  const out = document.getElementById("cp-client-hash");
-
-  let currentPhrase = "";
-
-  function refreshPhrase() {
-    currentPhrase = generatePassphrase(6);
-    phraseBox.textContent = currentPhrase;
+// The helper functions (generatePassphrase, sha256Hex, keyForName) are provided by base.html.
+(function () {
+  function helpersReady() {
+    return (typeof generatePassphrase === "function")
+        && (typeof sha256Hex === "function")
+        && (typeof keyForName === "function");
   }
 
-  function currentMode(){
-    return (modeRadios.find(r => r.checked)?.value) || "generated";
-  }
+  function initChangePassphrase() {
+    const form = document.getElementById("cp-form");
+    if (!form) return;
 
-  function syncModeUI(){
-    const gen = (currentMode() === "generated");
-    genWrap.style.display = gen ? "" : "none";
-    manWrap.style.display = gen ? "none" : "";
-  }
+    const modeRadios = Array.from(form.querySelectorAll('input[name="phrase_mode"]'));
 
-  btnNew.addEventListener("click", refreshPhrase);
-  modeRadios.forEach(r => r.addEventListener("change", syncModeUI));
+    const genWrap = document.getElementById("cp-generated-wrap");
+    const manWrap = document.getElementById("cp-manual-wrap");
 
-  showManual.addEventListener("change", () => {
-    manualInput.type = showManual.checked ? "text" : "password";
-  });
+    const phraseBox = document.getElementById("cp-passphrase");
+    const btnNew = document.getElementById("cp-new");
 
-  refreshPhrase();
-  syncModeUI();
+    const manualInput = document.getElementById("cp-manual-pass");
+    const showManual = document.getElementById("cp-show");
+    const remember = document.getElementById("cp-remember");
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    const out = document.getElementById("cp-client-hash");
 
-    let phrase = "";
-    if (currentMode() === "manual") {
-      phrase = (manualInput.value || "").trim();
-      if (!phrase) { alert("Please enter a passphrase."); return; }
-    } else {
-      phrase = currentPhrase;
+    // Correct way to embed a JS string literal safely.
+    const name = {{ (current_user.name if current_user.is_authenticated else '') | tojson }};
+
+    let currentPhrase = "";
+
+    function refreshPhrase() {
+      currentPhrase = generatePassphrase(6);
+      phraseBox.textContent = currentPhrase;
     }
 
-    const name = "{{ current_user.name if current_user.is_authenticated else '' }}";
-    if (name) {
-      if (remember.checked) localStorage.setItem(keyForName(name), phrase);
-      else localStorage.removeItem(keyForName(name));
+    function currentMode() {
+      return (modeRadios.find(r => r.checked)?.value) || "generated";
     }
 
-    out.value = await sha256Hex(phrase);
-    form.submit();
-  });
+    function syncModeUI() {
+      const gen = (currentMode() === "generated");
+      genWrap.style.display = gen ? "" : "none";
+      manWrap.style.display = gen ? "none" : "";
+    }
+
+    btnNew.addEventListener("click", refreshPhrase);
+    modeRadios.forEach(r => r.addEventListener("change", syncModeUI));
+
+    showManual.addEventListener("change", () => {
+      manualInput.type = showManual.checked ? "text" : "password";
+    });
+
+    // Initial render
+    refreshPhrase();
+    syncModeUI();
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      let phrase = "";
+      if (currentMode() === "manual") {
+        phrase = (manualInput.value || "").trim();
+        if (!phrase) { alert("Please enter a passphrase."); return; }
+      } else {
+        phrase = currentPhrase;
+        if (!phrase) { alert("Generated passphrase missing. Click New."); return; }
+      }
+
+      if (name) {
+        if (remember.checked) localStorage.setItem(keyForName(name), phrase);
+        else localStorage.removeItem(keyForName(name));
+      }
+
+      out.value = await sha256Hex(phrase);
+      form.submit();
+    });
+  }
+
+  // Wait for helper functions from base.html to exist before running init.
+  function waitForHelpersThenInit() {
+    if (helpersReady()) {
+      initChangePassphrase();
+      return;
+    }
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries++;
+      if (helpersReady()) {
+        clearInterval(timer);
+        initChangePassphrase();
+      } else if (tries >= 100) { // ~5s at 50ms
+        clearInterval(timer);
+        console.error("ChangePassphrase: helper functions not found (generatePassphrase/sha256Hex/keyForName). Check base.html script loading.");
+      }
+    }, 50);
+  }
+
+  // Use DOMContentLoaded so the DOM exists; still wait for helpers separately.
+  document.addEventListener("DOMContentLoaded", waitForHelpersThenInit);
 })();
 </script>
 {% endblock %}
